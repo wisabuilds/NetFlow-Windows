@@ -1,0 +1,12 @@
+[Unit]
+Description=NetFlow Linux Background Telemetry & Quota Daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/lenovo/Documents/antigravity/netflow-linux/main.py --daemon --port 9095
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

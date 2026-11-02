@@ -1,0 +1,22 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=NetFlow Network Monitor
+GenericName=Network & Bandwidth Monitor
+Comment=Real-time network speed, data usage quotas, and process monitor
+Exec=/home/lenovo/Documents/antigravity/netflow-linux/netflow app
+Icon=netflow
+Terminal=false
+Categories=Network;Monitor;System;
+Keywords=network;traffic;speed;bandwidth;netflow;glasswire;quota;
+StartupNotify=true
+StartupWMClass=io.github.netflow.NetFlowLinux
+Actions=tui;web;
+
+[Desktop Action tui]
+Name=Open Terminal Dashboard (TUI)
+Exec=gnome-terminal -- /home/lenovo/Documents/antigravity/netflow-linux/netflow tui
+
+[Desktop Action web]
+Name=Open Web Dashboard
+Exec=/home/lenovo/Documents/antigravity/netflow-linux/netflow web

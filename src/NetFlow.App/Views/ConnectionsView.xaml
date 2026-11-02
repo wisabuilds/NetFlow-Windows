@@ -1,0 +1,98 @@
+<UserControl x:Class="NetFlow.App.Views.ConnectionsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <TextBlock Text="ACTIVE SOCKET CONNECTIONS" Style="{StaticResource AdwPrefTitle}" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <TextBox Style="{StaticResource AdwTextBox}"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Tag="Search connections..."
+                         Width="240" Height="32" Margin="0,0,8,0"
+                         ToolTip="Filter sockets or host..." />
+                <Button Style="{StaticResource AdwButton}"
+                        Content="Refresh"
+                        Command="{Binding RefreshCommand}"
+                        Height="32" Padding="14,0" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Style="{StaticResource AdwBoxedList}" Margin="0,0,0,16">
+            <DataGrid ItemsSource="{Binding FilteredConnections}" Style="{StaticResource AdwDataGrid}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="APPLICATION &amp; PROCESS" Binding="{Binding ProcessName}" Width="180">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="REMOTE DESTINATION" Binding="{Binding RemoteSummary}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="LOCAL ENDPOINT &amp; STATE" Binding="{Binding LocalSummary}" Width="260">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+                                <Setter Property="Foreground" Value="{StaticResource AdwTextSecondary}" />
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTemplateColumn Header="POLICY" Width="95">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border x:Name="PolicyPill" Style="{StaticResource AdwBadgePillGreen}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <TextBlock x:Name="PolicyTxt" Text="{Binding Policy}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AdwGreen}" />
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding Policy}" Value="Blocked">
+                                        <Setter TargetName="PolicyPill" Property="Style" Value="{StaticResource AdwBadgePillRed}" />
+                                        <Setter TargetName="PolicyTxt" Property="Foreground" Value="{StaticResource AdwRed}" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="ACTIONS" Width="170">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource AdwButton}"
+                                            Content="Sever"
+                                            Command="{Binding DataContext.SeverCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,6,0" Padding="10,2" FontSize="11" Height="26" />
+                                    <Button Style="{StaticResource AdwDestructiveButton}"
+                                            Content="Block IP"
+                                            Command="{Binding DataContext.BlockIpCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Padding="10,2" FontSize="11" Height="26" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

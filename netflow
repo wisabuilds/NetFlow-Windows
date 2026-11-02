@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# NetFlow Linux Unified CLI Launcher
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1
+
+case "$1" in
+  app|gui|"")
+    if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
+      exec python3 "$DIR/netflow_gui.py"
+    else
+      exec python3 "$DIR/main.py" --tui
+    fi
+    ;;
+  browser|web)
+    python3 "$DIR/main.py" --daemon --open --port "${2:-9095}"
+    ;;
+  tui)
+    python3 "$DIR/main.py" --tui
+    ;;
+  daemon)
+    python3 "$DIR/main.py" --daemon --port "${2:-9095}"
+    ;;
+  scan)
+    python3 "$DIR/main.py" --scan
+    ;;
+  ping)
+    python3 "$DIR/main.py" --ping "${2:-1.1.1.1}"
+    ;;
+  speedtest)
+    python3 "$DIR/main.py" --speedtest
+    ;;
+  plan)
+    python3 "$DIR/main.py" --plan-set-gb "$2"
+    ;;
+  meter)
+    curl -s http://127.0.0.1:9095/api/stats/realtime 2>/dev/null | python3 -c '
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    rx = d.get("total_rx_speed_human", "0 B/s")
+    tx = d.get("total_tx_speed_human", "0 B/s")
+    print(f"↓ {rx}  ↑ {tx}")
+except Exception:
+    print("NetFlow: Offline")
+'
+    ;;
+  export)
+    TYPE="${2:-daily}"
+    curl -s "http://127.0.0.1:9095/api/export/csv?type=$TYPE"
+    ;;
+
+  service-install)
+    mkdir -p "$HOME/.config/systemd/user"
+    sed "s|/home/lenovo/Documents/antigravity/netflow-linux|$DIR|g" "$DIR/netflow.service" > "$HOME/.config/systemd/user/netflow.service"
+    systemctl --user daemon-reload
+    systemctl --user enable --now netflow.service
+    echo "[+] NetFlow systemd user service installed and started for $DIR."
+    ;;
+  desktop-install)
+    mkdir -p "$HOME/.local/share/applications" "$HOME/.local/bin" "$HOME/.local/share/pixmaps"
+    # 1. Install icons
+    python3 -c "
+import os, gi, shutil
+try:
+    gi.require_version('Rsvg', '2.0')
+    from gi.repository import Rsvg
+    import cairo
+    handle = Rsvg.Handle.new_from_file('$DIR/netflow.svg')
+    for sz in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
+        p = os.path.expanduser(f'~/.local/share/icons/hicolor/{sz}x{sz}/apps')
+        os.makedirs(p, exist_ok=True)
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, sz, sz)
+        cr = cairo.Context(s)
+        cr.scale(sz / 128.0, sz / 128.0)
+        handle.render_cairo(cr)
+        s.write_to_png(os.path.join(p, 'netflow.png'))
+except Exception:
+    pass
+sc_dir = os.path.expanduser('~/.local/share/icons/hicolor/scalable/apps')
+os.makedirs(sc_dir, exist_ok=True)
+shutil.copyfile('$DIR/netflow.svg', os.path.join(sc_dir, 'netflow.svg'))
+pix_dir = os.path.expanduser('~/.local/share/pixmaps')
+os.makedirs(pix_dir, exist_ok=True)
+shutil.copyfile('$DIR/netflow.svg', os.path.join(pix_dir, 'netflow.svg'))
+"
+    gtk-update-icon-cache -f -t "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
+
+    # 2. Install application menu launcher
+    sed "s|/home/lenovo/Documents/antigravity/netflow-linux|$DIR|g" "$DIR/netflow.desktop" > "$HOME/.local/share/applications/netflow.desktop"
+    chmod +x "$HOME/.local/share/applications/netflow.desktop"
+    update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+
+    # 3. Install desktop shortcut on ~/Desktop if directory exists
+    if [ -d "$HOME/Desktop" ]; then
+      cp "$HOME/.local/share/applications/netflow.desktop" "$HOME/Desktop/netflow.desktop"
+      chmod +x "$HOME/Desktop/netflow.desktop"
+      gio set "$HOME/Desktop/netflow.desktop" metadata::trusted true 2>/dev/null || true
+    fi
+
+    # 4. Link CLI to ~/.local/bin
+    ln -sf "$DIR/netflow" "$HOME/.local/bin/netflow"
+    ln -sf "$DIR/netflow" "$HOME/.local/bin/netflow-gui"
+
+    echo "[+] NetFlow successfully installed to Desktop and Applications menu."
+    ;;
+  *)
+    if [ -t 1 ]; then
+      python3 "$DIR/main.py" --tui
+    else
+      python3 "$DIR/main.py" --daemon
+    fi
+    ;;
+esac

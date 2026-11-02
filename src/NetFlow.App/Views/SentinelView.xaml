@@ -1,0 +1,261 @@
+<UserControl x:Class="NetFlow.App.Views.SentinelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:conv="clr-namespace:NetFlow.App.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="900" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <conv:BooleanToVisibilityConverter x:Key="BoolVisConverter" />
+    </UserControl.Resources>
+
+    <StackPanel>
+        <!-- 1. Threat Radar & Authenticode Verification -->
+        <Grid Margin="0,0,0,8">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="THREAT RADAR &amp; AUTHENTICODE VERIFICATION" Style="{StaticResource AdwPrefTitle}" />
+                <TextBlock Text="Real-time Trojan masquerading detection, digital signature verification, and anomalous port analysis" FontSize="12" Foreground="{StaticResource AdwTextSecondary}" />
+            </StackPanel>
+            <Button Style="{StaticResource AdwSuggestedButton}" Content="Deep Threat Scan" Command="{Binding DeepThreatScanCommand}" HorizontalAlignment="Right" VerticalAlignment="Center" Height="32" Padding="14,0" />
+        </Grid>
+
+        <Border Style="{StaticResource AdwBoxedList}" MinHeight="140" MaxHeight="240" Margin="0,0,0,20">
+            <Grid>
+                <!-- Empty State when no threats detected -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24"
+                            Visibility="{Binding HasThreats, Converter={StaticResource BoolVisConverter}, ConverterParameter='Inverse'}">
+                    <Border Width="48" Height="48" CornerRadius="24" Background="#1A33D17A" HorizontalAlignment="Center" Margin="0,0,0,12">
+                        <Path Data="M 12,22 C 12,22 20,18 20,12 V 5 L 12,2 L 4,5 V 12 C 4,18 12,22 12,22 Z M 9,12 L 11,14 L 15,10"
+                              Width="24" Height="24" Stretch="Uniform"
+                              Stroke="{StaticResource AdwGreen}" StrokeThickness="2"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="System Secure: No Anomalous Threats Detected"
+                               FontWeight="SemiBold" FontSize="14" Foreground="#FFFFFF"
+                               HorizontalAlignment="Center" Margin="0,0,0,4" />
+                    <TextBlock Text="Authenticode verification and Trojan heuristic analysis found no malicious behavior."
+                               FontSize="12" Foreground="{StaticResource AdwTextDim}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+
+                <!-- DataGrid when threats are detected -->
+                <DataGrid ItemsSource="{Binding Threats}" Style="{StaticResource AdwDataGrid}"
+                          Visibility="{Binding HasThreats, Converter={StaticResource BoolVisConverter}}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="PROCESS" Binding="{Binding ProcessName}" Width="160">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                    <Setter Property="Foreground" Value="#FFFFFF" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="70">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+                                    <Setter Property="Foreground" Value="{StaticResource AdwTextDim}" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTemplateColumn Header="RISK LEVEL" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="RiskBadge" Style="{StaticResource AdwBadgePill}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock x:Name="RiskText" Text="{Binding RiskLevel}" FontSize="11" FontWeight="Bold" />
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding RiskLevel}" Value="Critical">
+                                            <Setter TargetName="RiskBadge" Property="Style" Value="{StaticResource AdwBadgePillRed}" />
+                                            <Setter TargetName="RiskText" Property="Foreground" Value="{StaticResource AdwRed}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding RiskLevel}" Value="High">
+                                            <Setter TargetName="RiskBadge" Property="Style" Value="{StaticResource AdwBadgePillRed}" />
+                                            <Setter TargetName="RiskText" Property="Foreground" Value="{StaticResource AdwRed}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding RiskLevel}" Value="Medium">
+                                            <Setter TargetName="RiskBadge" Property="Style" Value="{StaticResource AdwBadgePillYellow}" />
+                                            <Setter TargetName="RiskText" Property="Foreground" Value="{StaticResource AdwYellow}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding RiskLevel}" Value="Low">
+                                            <Setter TargetName="RiskBadge" Property="Style" Value="{StaticResource AdwBadgePillGreen}" />
+                                            <Setter TargetName="RiskText" Property="Foreground" Value="{StaticResource AdwGreen}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="DIGITAL SIGNATURE &amp; PUBLISHER" Binding="{Binding Publisher}" Width="*" />
+                        <DataGridTextColumn Header="DETECTED THREAT FLAGS" Binding="{Binding DetectedFlags}" Width="200" />
+                        <DataGridTextColumn Header="I/O BANDWIDTH" Binding="{Binding BandwidthText}" Width="110">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTemplateColumn Header="ACTIVE DEFENSE" Width="125">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource AdwDestructiveButton}"
+                                            Content="Kill"
+                                            Command="{Binding DataContext.KillThreatCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Padding="12,2" FontSize="11" Height="26" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- 2. Kernel QoS Traffic Shaping & Gaming Booster -->
+        <Grid Margin="0,0,0,8">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="KERNEL QOS TRAFFIC SHAPING &amp; GAMING BOOSTER" Style="{StaticResource AdwPrefTitle}" />
+                <TextBlock Text="Inject Layer-3 DSCP Expedited Forwarding (EF 46) tags into tcpip.sys via Windows Group Policy QoS" FontSize="12" Foreground="{StaticResource AdwTextSecondary}" />
+            </StackPanel>
+            <Border Style="{StaticResource AdwBadgePillBlue}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBlock Text="{Binding QosElevationText}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AdwBlue}" />
+            </Border>
+        </Grid>
+
+        <Border Style="{StaticResource AdwBoxedList}" Padding="14" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="280" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox Style="{StaticResource AdwTextBox}"
+                         Text="{Binding QosAppInput, UpdateSourceTrigger=PropertyChanged}"
+                         Tag="e.g., game.exe, cs2.exe"
+                         Height="34" Margin="0,0,10,0"
+                         ToolTip="Executable (e.g. cs2.exe, valorant.exe)" />
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding DscpOptions}"
+                          SelectedItem="{Binding SelectedDscp}"
+                          Style="{StaticResource AdwComboBox}"
+                          Height="34" Margin="0,0,10,0" />
+                <Button Grid.Column="2"
+                        Style="{StaticResource AdwSuggestedButton}"
+                        Content="Prioritize Application"
+                        Command="{Binding ApplyQosCommand}"
+                        Height="34" Padding="14,0" />
+            </Grid>
+        </Border>
+
+        <Border Style="{StaticResource AdwBoxedList}" MaxHeight="180" Margin="0,0,0,20">
+            <DataGrid ItemsSource="{Binding QosRules}" Style="{StaticResource AdwDataGrid}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="RULE NAME" Binding="{Binding RuleName}" Width="180">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="TARGET APPLICATION" Binding="{Binding TargetApp}" Width="*" />
+                    <DataGridTextColumn Header="DSCP PRIORITY TIER" Binding="{Binding DscpTier}" Width="180">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="{StaticResource FontMono}" />
+                                <Setter Property="Foreground" Value="{StaticResource AdwBlue}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="BANDWIDTH CAP" Binding="{Binding BandwidthCap}" Width="120" />
+                    <DataGridTemplateColumn Header="ACTION" Width="90">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource AdwButton}"
+                                        Content="Remove"
+                                        Command="{Binding DataContext.RemoveQosCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Padding="8,2" FontSize="11" Height="26" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- 3. Driverless VPN & Tor Gateway 2-Column Strip -->
+        <Grid Margin="0,0,0,24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Driverless VPN -->
+            <Border Grid.Column="0" Style="{StaticResource AdwBoxedList}" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="DRIVERLESS SSTP/L2TP VPN TUNNEL" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AdwTextSecondary}" />
+                    <TextBlock Text="Zero-install native Windows WAN Miniport gateway router" FontSize="12" Foreground="{StaticResource AdwTextDim}" Margin="0,2,0,12" />
+
+                    <Grid Margin="0,0,0,10">
+                        <TextBlock Text="Tunnel Status:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#FFFFFF" />
+                        <Border HorizontalAlignment="Right" Style="{StaticResource AdwBadgePill}">
+                            <TextBlock Text="{Binding VpnStateText}" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource AdwTextPrimary}" />
+                        </Border>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,4">
+                        <TextBlock Text="Fast Relay Gateway:" FontSize="11" Foreground="{StaticResource AdwTextDim}" VerticalAlignment="Center" />
+                        <Button HorizontalAlignment="Right" Content="⟳ Sync Live" Command="{Binding RefreshRelaysCommand}" 
+                                Style="{StaticResource AdwButton}" FontSize="10" Padding="6,1" Height="20" ToolTip="Fetch latest relays from VPNGate API" />
+                    </Grid>
+                    <ComboBox ItemsSource="{Binding VpnRelays}"
+                              SelectedItem="{Binding SelectedRelay}"
+                              DisplayMemberPath="DisplayName"
+                              Style="{StaticResource AdwComboBox}"
+                              Height="32" Margin="0,0,0,12" />
+
+                    <Button Style="{StaticResource AdwSuggestedButton}"
+                            Content="{Binding VpnButtonText}"
+                            Command="{Binding ToggleVpnCommand}"
+                            Height="34" />
+                </StackPanel>
+            </Border>
+
+            <!-- Tor Onion Gateway -->
+            <Border Grid.Column="2" Style="{StaticResource AdwBoxedList}" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="TOR ONION PRIVACY &amp; WININET PROXY" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AdwTextSecondary}" />
+                    <TextBlock Text="System-wide WinINet proxy routing (Note: Non-WinINet apps &amp; UDP DNS may bypass proxy)" FontSize="12" Foreground="{StaticResource AdwTextDim}" Margin="0,2,0,12" />
+
+                    <Grid Margin="0,0,0,10">
+                        <TextBlock Text="Tor SOCKS Service:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#FFFFFF" />
+                        <Border HorizontalAlignment="Right" Style="{StaticResource AdwBadgePill}">
+                            <TextBlock Text="{Binding TorProbeText}" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource AdwTextPrimary}" />
+                        </Border>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,14">
+                        <TextBlock Text="System-Wide Proxy:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#FFFFFF" />
+                        <Border HorizontalAlignment="Right" Style="{StaticResource AdwBadgePill}">
+                            <TextBlock Text="{Binding TorProxyStateText}" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource AdwTextPrimary}" />
+                        </Border>
+                    </Grid>
+
+                    <Button Style="{StaticResource AdwSuggestedButton}"
+                            Content="{Binding TorButtonText}"
+                            Command="{Binding ToggleTorCommand}"
+                            Height="34" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </StackPanel>
+</UserControl>

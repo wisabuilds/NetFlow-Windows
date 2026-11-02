@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NetFlow.App\NetFlow.App.csproj" />
+    <ProjectReference Include="..\..\src\NetFlow.Core\NetFlow.Core.csproj" />
+    <ProjectReference Include="..\..\src\NetFlow.Platform.Windows\NetFlow.Platform.Windows.csproj" />
+    <ProjectReference Include="..\..\src\NetFlow.Server\NetFlow.Server.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="System.IO" />
+    <Using Include="System.IO.Path" Alias="Path" />
+    <Using Include="System.IO.File" Alias="File" />
+  </ItemGroup>
+
+</Project>

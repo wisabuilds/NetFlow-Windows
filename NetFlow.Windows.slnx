@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NetFlow.App/NetFlow.App.csproj" />
+    <Project Path="src/NetFlow.Cli/NetFlow.Cli.csproj" />
+    <Project Path="src/NetFlow.Core/NetFlow.Core.csproj" />
+    <Project Path="src/NetFlow.Platform.Windows/NetFlow.Platform.Windows.csproj" />
+    <Project Path="src/NetFlow.Server/NetFlow.Server.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NetFlow.Tests/NetFlow.Tests.csproj" />
+  </Folder>
+</Solution>

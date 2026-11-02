@@ -1,0 +1,14 @@
+# NetFlow Linux Dependencies
+# Core Backend: Built entirely with Python 3.8+ Standard Library (Zero 3rd-party dependencies)
+#
+# Optional GUI / Desktop Dependencies (for GNOME Libadwaita / GTK4 desktop application):
+# - PyGObject (GTK 4, Libadwaita 1, WebKitGTK 6.0)
+#
+# On Ubuntu / Debian:
+#   sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0
+#
+# On Fedora:
+#   sudo dnf install python3-gobject gtk4 libadwaita webkitgtk6.0
+#
+# On Arch Linux:
+#   sudo pacman -S python-gobject gtk4 libadwaita webkitgtk-6.0

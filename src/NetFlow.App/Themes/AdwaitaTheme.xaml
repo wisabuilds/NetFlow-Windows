@@ -1,0 +1,702 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- GNOME Libadwaita Dark Palette -->
+    <Color x:Key="AdwWindowBgColor">#242424</Color>
+    <Color x:Key="AdwViewBgColor">#1e1e1e</Color>
+    <Color x:Key="AdwHeaderBarBgColor">#303030</Color>
+    <Color x:Key="AdwHeaderBarBorderColor">#73000000</Color>
+    <Color x:Key="AdwCardBgColor">#1e1e1e</Color>
+    <Color x:Key="AdwCardBgElevatedColor">#262626</Color>
+    <Color x:Key="AdwCardHoverColor">#2e2e2e</Color>
+    <Color x:Key="AdwCardBorderColor">#14FFFFFF</Color>
+
+    <Color x:Key="AdwTextPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="AdwTextSecondaryColor">#B8FFFFFF</Color>
+    <Color x:Key="AdwTextDimColor">#73FFFFFF</Color>
+
+    <Color x:Key="AdwBlueColor">#3584e4</Color>
+    <Color x:Key="AdwBlueHoverColor">#1c71d8</Color>
+    <Color x:Key="AdwGreenColor">#33d17a</Color>
+    <Color x:Key="AdwGreenDimColor">#2933D17A</Color>
+    <Color x:Key="AdwYellowColor">#f5c211</Color>
+    <Color x:Key="AdwYellowDimColor">#29F5C211</Color>
+    <Color x:Key="AdwOrangeColor">#ff7800</Color>
+    <Color x:Key="AdwOrangeDimColor">#29FF7800</Color>
+    <Color x:Key="AdwRedColor">#e01b24</Color>
+    <Color x:Key="AdwRedDimColor">#2EE01B24</Color>
+    <Color x:Key="AdwPurpleColor">#9141ac</Color>
+
+    <!-- SolidColorBrushes -->
+    <SolidColorBrush x:Key="AdwWindowBg" Color="{StaticResource AdwWindowBgColor}" />
+    <SolidColorBrush x:Key="AdwViewBg" Color="{StaticResource AdwViewBgColor}" />
+    <SolidColorBrush x:Key="AdwHeaderBarBg" Color="{StaticResource AdwHeaderBarBgColor}" />
+    <SolidColorBrush x:Key="AdwHeaderBarBorder" Color="{StaticResource AdwHeaderBarBorderColor}" />
+    <SolidColorBrush x:Key="AdwCardBg" Color="{StaticResource AdwCardBgColor}" />
+    <SolidColorBrush x:Key="AdwCardBgElevated" Color="{StaticResource AdwCardBgElevatedColor}" />
+    <SolidColorBrush x:Key="AdwCardHover" Color="{StaticResource AdwCardHoverColor}" />
+    <SolidColorBrush x:Key="AdwCardBorder" Color="{StaticResource AdwCardBorderColor}" />
+
+    <SolidColorBrush x:Key="AdwTextPrimary" Color="{StaticResource AdwTextPrimaryColor}" />
+    <SolidColorBrush x:Key="AdwTextSecondary" Color="{StaticResource AdwTextSecondaryColor}" />
+    <SolidColorBrush x:Key="AdwTextDim" Color="{StaticResource AdwTextDimColor}" />
+
+    <SolidColorBrush x:Key="AdwBlue" Color="{StaticResource AdwBlueColor}" />
+    <SolidColorBrush x:Key="AdwBlueHover" Color="{StaticResource AdwBlueHoverColor}" />
+    <SolidColorBrush x:Key="AdwGreen" Color="{StaticResource AdwGreenColor}" />
+    <SolidColorBrush x:Key="AdwGreenDim" Color="{StaticResource AdwGreenDimColor}" />
+    <SolidColorBrush x:Key="AdwYellow" Color="{StaticResource AdwYellowColor}" />
+    <SolidColorBrush x:Key="AdwYellowDim" Color="{StaticResource AdwYellowDimColor}" />
+    <SolidColorBrush x:Key="AdwOrange" Color="{StaticResource AdwOrangeColor}" />
+    <SolidColorBrush x:Key="AdwOrangeDim" Color="{StaticResource AdwOrangeDimColor}" />
+    <SolidColorBrush x:Key="AdwRed" Color="{StaticResource AdwRedColor}" />
+    <SolidColorBrush x:Key="AdwRedDim" Color="{StaticResource AdwRedDimColor}" />
+    <SolidColorBrush x:Key="AdwPurple" Color="{StaticResource AdwPurpleColor}" />
+
+    <SolidColorBrush x:Key="AdwBtnBg" Color="#10FFFFFF" />
+    <SolidColorBrush x:Key="AdwBtnHoverBg" Color="#1AFFFFFF" />
+    <SolidColorBrush x:Key="AdwBtnActiveBg" Color="#26FFFFFF" />
+
+    <!-- Typography Fonts -->
+    <FontFamily x:Key="FontUi">Segoe UI Variable Display, Inter, Cantarell, Segoe UI, sans-serif</FontFamily>
+    <FontFamily x:Key="FontMono">Cascadia Code, Consolas, JetBrains Mono, Courier New</FontFamily>
+
+    <!-- Standard Button Style -->
+    <Style x:Key="AdwButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource FontUi}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource AdwTextPrimary}" />
+        <Setter Property="Background" Value="{StaticResource AdwBtnBg}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwCardBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource AdwBtnHoverBg}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource AdwBtnActiveBg}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Suggested Blue Button -->
+    <Style x:Key="AdwSuggestedButton" TargetType="Button" BasedOn="{StaticResource AdwButton}">
+        <Setter Property="Background" Value="{StaticResource AdwBlue}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwBlue}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource AdwBlueHover}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#175cb3" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Destructive Red Button -->
+    <Style x:Key="AdwDestructiveButton" TargetType="Button" BasedOn="{StaticResource AdwButton}">
+        <Setter Property="Background" Value="{StaticResource AdwRed}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwRed}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#c01c28" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#a51d2d" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Segmented View Switcher Tab (RadioButton) -->
+    <Style x:Key="AdwViewTab" TargetType="RadioButton">
+        <Setter Property="FontFamily" Value="{StaticResource FontUi}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource AdwTextSecondary}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#10FFFFFF" />
+                            <Setter Property="Foreground" Value="{StaticResource AdwTextPrimary}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource AdwCardBgElevated}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource AdwCardBorder}" />
+                            <Setter TargetName="Border" Property="BorderThickness" Value="1" />
+                            <Setter Property="Foreground" Value="{StaticResource AdwTextPrimary}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Window Caption Button Style -->
+    <Style x:Key="AdwCaptionButton" TargetType="Button">
+        <Setter Property="Width" Value="46" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource AdwTextSecondary}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#1AFFFFFF" />
+                            <Setter Property="Foreground" Value="{StaticResource AdwTextPrimary}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#2AFFFFFF" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Close Caption Button Style (Red on hover) -->
+    <Style x:Key="AdwCaptionCloseButton" TargetType="Button" BasedOn="{StaticResource AdwCaptionButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#e01b24" />
+                            <Setter Property="Foreground" Value="#FFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#c01c28" />
+                            <Setter Property="Foreground" Value="#FFFFFF" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Standard TextBox Style -->
+    <Style x:Key="AdwTextBox" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{StaticResource FontUi}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource AdwTextPrimary}" />
+        <Setter Property="Background" Value="{StaticResource AdwCardBgElevated}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwCardBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="CaretBrush" Value="{StaticResource AdwBlue}" />
+        <Setter Property="SelectionBrush" Value="{StaticResource AdwBlue}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8"
+                            SnapsToDevicePixels="True">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            <TextBlock x:Name="WatermarkHost"
+                                       Text="{TemplateBinding Tag}"
+                                       Margin="{TemplateBinding Padding}"
+                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                       Foreground="{StaticResource AdwTextDim}"
+                                       FontFamily="{TemplateBinding FontFamily}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       IsHitTestVisible="False"
+                                       Visibility="Collapsed" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="WatermarkHost" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="#29FFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource AdwBlue}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Modern Adwaita ComboBox Style -->
+    <ControlTemplate x:Key="AdwComboBoxToggleButton" TargetType="ToggleButton">
+        <Border x:Name="Border"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="8"
+                SnapsToDevicePixels="True">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="28" />
+                </Grid.ColumnDefinitions>
+                <Path Grid.Column="1"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Data="M 0,0 L 4,4 L 8,0"
+                      Stroke="{StaticResource AdwTextSecondary}"
+                      StrokeThickness="1.8"
+                      StrokeLineJoin="Round"
+                      StrokeStartLineCap="Round"
+                      StrokeEndLineCap="Round" />
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Border" Property="BorderBrush" Value="#40FFFFFF" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource AdwBlue}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style x:Key="AdwComboBoxItem" TargetType="ComboBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource AdwTextPrimary}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="10,7" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="ItemBorder"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}"
+                            Margin="2,1"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ItemBorder" Property="Background" Value="#1AFFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="ItemBorder" Property="Background" Value="#253584E4" />
+                            <Setter Property="Foreground" Value="#FFFFFF" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="AdwComboBox" TargetType="ComboBox">
+        <Setter Property="FontFamily" Value="{StaticResource FontUi}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource AdwTextPrimary}" />
+        <Setter Property="Background" Value="{StaticResource AdwCardBgElevated}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwCardBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="ItemContainerStyle" Value="{StaticResource AdwComboBoxItem}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton Name="ToggleButton"
+                                      Template="{StaticResource AdwComboBoxToggleButton}"
+                                      Background="{TemplateBinding Background}"
+                                      BorderBrush="{TemplateBinding BorderBrush}"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      Focusable="False"
+                                      IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                      ClickMode="Press" />
+                        <ContentPresenter Name="ContentSite"
+                                          IsHitTestVisible="False"
+                                          Content="{TemplateBinding SelectionBoxItem}"
+                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Left" />
+                        <Popup Name="Popup"
+                               Placement="Bottom"
+                               IsOpen="{TemplateBinding IsDropDownOpen}"
+                               AllowsTransparency="True"
+                               Focusable="False"
+                               PopupAnimation="Slide">
+                            <Border Name="DropDownBorder"
+                                    MinWidth="{TemplateBinding ActualWidth}"
+                                    MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                    Background="{StaticResource AdwCardBgElevated}"
+                                    BorderBrush="{StaticResource AdwCardBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Margin="0,4,0,0"
+                                    Padding="4"
+                                    SnapsToDevicePixels="True">
+                                <ScrollViewer SnapsToDevicePixels="True">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Circular" />
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Boxed List Card Border -->
+    <Style x:Key="AdwBoxedList" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource AdwCardBg}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwCardBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <!-- Badge Pill Styles -->
+    <Style x:Key="AdwBadgePill" TargetType="Border">
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="8,3" />
+        <Setter Property="Background" Value="{StaticResource AdwCardBgElevated}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwCardBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <Style x:Key="AdwBadgePillGreen" TargetType="Border" BasedOn="{StaticResource AdwBadgePill}">
+        <Setter Property="Background" Value="{StaticResource AdwGreenDim}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwGreen}" />
+    </Style>
+
+    <Style x:Key="AdwBadgePillYellow" TargetType="Border" BasedOn="{StaticResource AdwBadgePill}">
+        <Setter Property="Background" Value="{StaticResource AdwYellowDim}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwYellow}" />
+    </Style>
+
+    <Style x:Key="AdwBadgePillRed" TargetType="Border" BasedOn="{StaticResource AdwBadgePill}">
+        <Setter Property="Background" Value="{StaticResource AdwRedDim}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwRed}" />
+    </Style>
+
+    <Style x:Key="AdwBadgePillBlue" TargetType="Border" BasedOn="{StaticResource AdwBadgePill}">
+        <Setter Property="Background" Value="#253584e4" />
+        <Setter Property="BorderBrush" Value="{StaticResource AdwBlue}" />
+    </Style>
+
+    <!-- Graph Card Border -->
+    <Style x:Key="AdwGraphCard" TargetType="Border" BasedOn="{StaticResource AdwBoxedList}">
+        <Setter Property="Padding" Value="16" />
+    </Style>
+
+    <!-- Section Title (Uppercase, dim) -->
+    <Style x:Key="AdwPrefTitle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontUi}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource AdwTextSecondary}" />
+        <Setter Property="Margin" Value="6,0,0,6" />
+    </Style>
+
+    <!-- Clean Modern DataGrid / ListView Style -->
+    <Style x:Key="AdwDataGrid" TargetType="DataGrid">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource AdwTextPrimary}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="GridLinesVisibility" Value="None" />
+        <Setter Property="RowBackground" Value="Transparent" />
+        <Setter Property="AlternatingRowBackground" Value="#06FFFFFF" />
+        <Setter Property="AutoGenerateColumns" Value="False" />
+        <Setter Property="CanUserAddRows" Value="False" />
+        <Setter Property="CanUserDeleteRows" Value="False" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="SelectionMode" Value="Single" />
+        <Setter Property="SelectionUnit" Value="FullRow" />
+        <Setter Property="RowHeight" Value="40" />
+        <Setter Property="HeadersVisibility" Value="Column" />
+        <Setter Property="FontFamily" Value="{StaticResource FontUi}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="EnableRowVirtualization" Value="True" />
+        <Setter Property="VirtualizingStackPanel.IsVirtualizing" Value="True" />
+        <Setter Property="VirtualizingStackPanel.VirtualizationMode" Value="Recycling" />
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True" />
+        <Setter Property="ColumnHeaderStyle">
+            <Setter.Value>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#1A000000" />
+                    <Setter Property="Foreground" Value="{StaticResource AdwTextDim}" />
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="FontSize" Value="11" />
+                    <Setter Property="Padding" Value="12,8" />
+                    <Setter Property="BorderThickness" Value="0,0,0,1" />
+                    <Setter Property="BorderBrush" Value="{StaticResource AdwCardBorder}" />
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridColumnHeader">
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        Padding="{TemplateBinding Padding}"
+                                        SnapsToDevicePixels="True">
+                                    <ContentPresenter VerticalAlignment="Center" />
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="RowStyle">
+            <Setter.Value>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="BorderThickness" Value="0,0,0,1" />
+                    <Setter Property="BorderBrush" Value="#0AFFFFFF" />
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource AdwCardHover}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#1E3584E4" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="CellStyle">
+            <Setter.Value>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Padding" Value="12,0" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridCell">
+                                <Border Background="{TemplateBinding Background}"
+                                        Padding="{TemplateBinding Padding}"
+                                        SnapsToDevicePixels="True">
+                                    <ContentPresenter VerticalAlignment="Center" />
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="Foreground" Value="{StaticResource AdwTextPrimary}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Libadwaita Pill Toggle Switch Style (Default CheckBox) -->
+    <Style TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid VerticalAlignment="Center">
+                        <Border x:Name="Track"
+                                Width="44" Height="24"
+                                CornerRadius="12"
+                                Background="{StaticResource AdwCardBgElevated}"
+                                BorderBrush="{StaticResource AdwCardBorder}"
+                                BorderThickness="1"
+                                SnapsToDevicePixels="True" />
+                        <Border x:Name="Thumb"
+                                Width="18" Height="18"
+                                CornerRadius="9"
+                                Background="#FFFFFF"
+                                HorizontalAlignment="Left"
+                                Margin="3,0,0,0"
+                                VerticalAlignment="Center"
+                                SnapsToDevicePixels="True" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{StaticResource AdwBlue}" />
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{StaticResource AdwBlue}" />
+                            <Setter TargetName="Thumb" Property="Margin" Value="23,0,0,0" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Track" Property="BorderBrush" Value="#40FFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- AdwProgressBar Style (Default ProgressBar) -->
+    <Style TargetType="ProgressBar">
+        <Setter Property="Height" Value="8" />
+        <Setter Property="Foreground" Value="{StaticResource AdwBlue}" />
+        <Setter Property="Background" Value="{StaticResource AdwCardBgElevated}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Grid SnapsToDevicePixels="True">
+                        <Border x:Name="Track" Background="{TemplateBinding Background}" CornerRadius="4" />
+                        <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" CornerRadius="4" HorizontalAlignment="Left" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Libadwaita Minimal ScrollBar Style -->
+    <Style TargetType="ScrollBar">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Vertical">
+                <Setter Property="Width" Value="8" />
+                <Setter Property="Height" Value="Auto" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ScrollBar">
+                            <Grid Background="Transparent">
+                                <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                    <Track.Thumb>
+                                        <Thumb>
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb">
+                                                    <Border Background="#26FFFFFF" CornerRadius="4" Margin="1,0" />
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Height" Value="8" />
+                <Setter Property="Width" Value="Auto" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ScrollBar">
+                            <Grid Background="Transparent">
+                                <Track x:Name="PART_Track" IsDirectionReversed="False">
+                                    <Track.Thumb>
+                                        <Thumb>
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb">
+                                                    <Border Background="#26FFFFFF" CornerRadius="4" Margin="0,1" />
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

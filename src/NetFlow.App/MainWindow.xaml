@@ -1,0 +1,291 @@
+<Window x:Class="NetFlow.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NetFlow.App"
+        xmlns:vm="clr-namespace:NetFlow.App.ViewModels"
+        xmlns:views="clr-namespace:NetFlow.App.Views"
+        xmlns:conv="clr-namespace:NetFlow.App.Converters"
+        mc:Ignorable="d"
+        Title="NetFlow Windows — Network &amp; Active Defense"
+        Height="840" Width="1240"
+        MinHeight="620" MinWidth="960"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource AdwWindowBg}"
+        Foreground="{StaticResource AdwTextPrimary}"
+        FontFamily="{StaticResource FontUi}"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.BitmapScalingMode="HighQuality">
+
+    <Window.Resources>
+        <conv:TabVisibilityConverter x:Key="TabVisConverter" />
+        <conv:BooleanToVisibilityConverter x:Key="BoolVisConverter" />
+
+        <!-- DataTemplates for Views -->
+        <DataTemplate DataType="{x:Type vm:ResourcesViewModel}">
+            <views:ResourcesView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:FirewallViewModel}">
+            <views:FirewallView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HistoryViewModel}">
+            <views:HistoryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProcessesViewModel}">
+            <views:ProcessesView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ConnectionsViewModel}">
+            <views:ConnectionsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ToolsViewModel}">
+            <views:ToolsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SentinelViewModel}">
+            <views:SentinelView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="48"
+                      ResizeBorderThickness="6"
+                      CornerRadius="0"
+                      GlassFrameThickness="0"
+                      UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 1. AdwHeaderBar (Height: 48px, sticky top) -->
+        <Border Grid.Row="0"
+                Background="{StaticResource AdwHeaderBarBg}"
+                BorderBrush="{StaticResource AdwHeaderBarBorder}"
+                BorderThickness="0,0,0,1"
+                Padding="16,0"
+                SnapsToDevicePixels="True">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: App Branding -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="26" Height="26" CornerRadius="6" Background="#223584e4" Margin="0,0,10,0">
+                        <Path Fill="{StaticResource AdwBlue}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Data="M 2,12 L 6,12 L 9,3 L 15,21 L 18,12 L 22,12"
+                              Stroke="{StaticResource AdwBlue}" StrokeThickness="2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                    </Border>
+                    <TextBlock Text="NetFlow" FontWeight="Bold" FontSize="14" Foreground="{StaticResource AdwTextPrimary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBlock Text="Network" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource AdwTextDim}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Center: AdwViewSwitcher (Segmented pill bar with official Adwaita SVG icons) -->
+                <Border Grid.Column="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="#40000000"
+                        CornerRadius="8"
+                        Padding="3"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal">
+                        <!-- Resources -->
+                        <RadioButton Style="{StaticResource AdwViewTab}"
+                                     GroupName="HeaderTabs"
+                                     IsChecked="{Binding SelectedTab, Mode=TwoWay, Converter={StaticResource TabVisConverter}, ConverterParameter='resources'}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="M 2,12 L 6,12 L 9,3 L 15,21 L 18,12 L 22,12"
+                                      Width="13" Height="13" Stretch="Uniform"
+                                      Stroke="{Binding RelativeSource={RelativeSource AncestorType=RadioButton}, Path=Foreground}"
+                                      StrokeThickness="1.8" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Margin="0,0,6,0" />
+                                <TextBlock Text="Resources" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Firewall -->
+                        <RadioButton Style="{StaticResource AdwViewTab}"
+                                     GroupName="HeaderTabs"
+                                     IsChecked="{Binding SelectedTab, Mode=TwoWay, Converter={StaticResource TabVisConverter}, ConverterParameter='firewall'}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="M 12,22 C 12,22 20,18 20,12 V 5 L 12,2 L 4,5 V 12 C 4,18 12,22 12,22 Z"
+                                      Width="13" Height="13" Stretch="Uniform"
+                                      Stroke="{Binding RelativeSource={RelativeSource AncestorType=RadioButton}, Path=Foreground}"
+                                      StrokeThickness="1.8" StrokeLineJoin="Round" Margin="0,0,6,0" />
+                                <TextBlock Text="Firewall" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- History -->
+                        <RadioButton Style="{StaticResource AdwViewTab}"
+                                     GroupName="HeaderTabs"
+                                     IsChecked="{Binding SelectedTab, Mode=TwoWay, Converter={StaticResource TabVisConverter}, ConverterParameter='history'}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="M 12,2 A 10,10 0 1 0 22,12 A 10,10 0 1 0 12,2 M 12,6 V 12 L 16,14"
+                                      Width="13" Height="13" Stretch="Uniform"
+                                      Stroke="{Binding RelativeSource={RelativeSource AncestorType=RadioButton}, Path=Foreground}"
+                                      StrokeThickness="1.8" StrokeLineJoin="Round" Margin="0,0,6,0" />
+                                <TextBlock Text="History" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Processes -->
+                        <RadioButton Style="{StaticResource AdwViewTab}"
+                                     GroupName="HeaderTabs"
+                                     IsChecked="{Binding SelectedTab, Mode=TwoWay, Converter={StaticResource TabVisConverter}, ConverterParameter='processes'}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="M 4,4 H 20 V 20 H 4 Z M 9,9 H 15 V 15 H 9 Z"
+                                      Width="13" Height="13" Stretch="Uniform"
+                                      Stroke="{Binding RelativeSource={RelativeSource AncestorType=RadioButton}, Path=Foreground}"
+                                      StrokeThickness="1.8" StrokeLineJoin="Round" Margin="0,0,6,0" />
+                                <TextBlock Text="Processes" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Connections -->
+                        <RadioButton Style="{StaticResource AdwViewTab}"
+                                     GroupName="HeaderTabs"
+                                     IsChecked="{Binding SelectedTab, Mode=TwoWay, Converter={StaticResource TabVisConverter}, ConverterParameter='connections'}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="M 12,2 A 10,10 0 1 0 22,12 A 10,10 0 1 0 12,2 M 2,12 H 22 M 12,2 C 16,6 16,18 12,22 C 8,18 8,6 12,2"
+                                      Width="13" Height="13" Stretch="Uniform"
+                                      Stroke="{Binding RelativeSource={RelativeSource AncestorType=RadioButton}, Path=Foreground}"
+                                      StrokeThickness="1.8" StrokeLineJoin="Round" Margin="0,0,6,0" />
+                                <TextBlock Text="Connections" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Tools -->
+                        <RadioButton Style="{StaticResource AdwViewTab}"
+                                     GroupName="HeaderTabs"
+                                     IsChecked="{Binding SelectedTab, Mode=TwoWay, Converter={StaticResource TabVisConverter}, ConverterParameter='tools'}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="M 14.7,6.3 A 1,1 0 0 0 14.7,7.7 L 16.3,9.3 A 1,1 0 0 0 17.7,9.3 L 21.5,5.5 A 6,6 0 0 1 13.5,13.5 L 6.6,20.4 A 2.1,2.1 0 0 1 3.6,17.4 L 10.5,10.5 A 6,6 0 0 1 18.5,2.5 Z"
+                                      Width="13" Height="13" Stretch="Uniform"
+                                      Stroke="{Binding RelativeSource={RelativeSource AncestorType=RadioButton}, Path=Foreground}"
+                                      StrokeThickness="1.8" StrokeLineJoin="Round" Margin="0,0,6,0" />
+                                <TextBlock Text="Tools" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Sentinel -->
+                        <RadioButton Style="{StaticResource AdwViewTab}"
+                                     GroupName="HeaderTabs"
+                                     IsChecked="{Binding SelectedTab, Mode=TwoWay, Converter={StaticResource TabVisConverter}, ConverterParameter='sentinel'}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="M 12,22 C 12,22 20,18 20,12 V 5 L 12,2 L 4,5 V 12 C 4,18 12,22 12,22 Z M 9,12 L 11,14 L 15,10"
+                                      Width="13" Height="13" Stretch="Uniform"
+                                      Stroke="{Binding RelativeSource={RelativeSource AncestorType=RadioButton}, Path=Foreground}"
+                                      StrokeThickness="1.8" StrokeLineJoin="Round" Margin="0,0,6,0" />
+                                <TextBlock Text="Sentinel" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+                </Border>
+
+                <!-- Right: Incognito Toggle, Live Status Dot, and Native Caption Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Incognito Pill Button -->
+                    <Button Style="{StaticResource AdwButton}"
+                            Command="{Binding ToggleIncognitoCommand}"
+                            Padding="8,4"
+                            Margin="0,0,10,0"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M 1,12 C 4,5 12,4 12,4 C 12,4 20,5 23,12 C 20,19 12,20 12,20 C 12,20 4,19 1,12 Z M 12,9 A 3,3 0 1 0 15,12 A 3,3 0 0 0 12,9"
+                                  Width="13" Height="13" Stretch="Uniform"
+                                  Stroke="{StaticResource AdwTextSecondary}" StrokeThickness="1.5" Margin="0,0,6,0" />
+                            <TextBlock Text="{Binding IncognitoLabel}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Live Online Status Dot -->
+                    <Border Width="22" Height="22" CornerRadius="11" Margin="0,0,16,0" ToolTip="{Binding NetworkStatusTooltip}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{StaticResource AdwGreenDim}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding NetworkStatus}" Value="Degraded">
+                                        <Setter Property="Background" Value="{StaticResource AdwYellowDim}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding NetworkStatus}" Value="Offline">
+                                        <Setter Property="Background" Value="{StaticResource AdwRedDim}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsOnline}" Value="False">
+                                        <Setter Property="Background" Value="{StaticResource AdwRedDim}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Border Width="8" Height="8" CornerRadius="4" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource AdwGreen}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding NetworkStatus}" Value="Degraded">
+                                            <Setter Property="Background" Value="{StaticResource AdwYellow}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding NetworkStatus}" Value="Offline">
+                                            <Setter Property="Background" Value="{StaticResource AdwRed}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsOnline}" Value="False">
+                                            <Setter Property="Background" Value="{StaticResource AdwRed}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
+                    </Border>
+
+                    <!-- Caption Buttons (Minimize, Maximize, Close) -->
+                    <Button Style="{StaticResource AdwCaptionButton}"
+                            Click="Minimize_Click"
+                            ToolTip="Minimize"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Path Data="M 0,0 H 10" Width="10" Height="1" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" StrokeThickness="1" SnapsToDevicePixels="True" />
+                    </Button>
+                    <Button Style="{StaticResource AdwCaptionButton}"
+                            Click="Maximize_Click"
+                            ToolTip="Maximize"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Path x:Name="MaximizeIcon" Data="M 0,0 H 10 V 10 H 0 Z" Width="10" Height="10" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" StrokeThickness="1" SnapsToDevicePixels="True" />
+                    </Button>
+                    <Button Style="{StaticResource AdwCaptionCloseButton}"
+                            Click="Close_Click"
+                            ToolTip="Close to Tray"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Path Data="M 0,0 L 10,10 M 10,0 L 0,10" Width="10" Height="10" Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" StrokeThickness="1.2" SnapsToDevicePixels="True" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 2. Main Content Area (Dynamic ContentControl: Exactly ONE View rendered at a time, ZERO overlap) -->
+        <ScrollViewer Grid.Row="1"
+                      x:Name="MainContentScrollViewer"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Background="{StaticResource AdwWindowBg}">
+            <ScrollViewer.Style>
+                <Style TargetType="ScrollViewer">
+                    <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedTab}" Value="connections">
+                            <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding SelectedTab}" Value="processes">
+                            <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ScrollViewer.Style>
+            <Border MaxWidth="1160" Padding="24,20" HorizontalAlignment="Stretch">
+                <ContentControl Content="{Binding CurrentViewModel}" Focusable="False" />
+            </Border>
+        </ScrollViewer>
+    </Grid>
+</Window>

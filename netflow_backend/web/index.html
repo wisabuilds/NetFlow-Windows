@@ -1,0 +1,3025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetFlow Linux — Network</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cantarell:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* GNOME Libadwaita 1.5 Official Dark Theme Tokens */
+    :root {
+      --adw-window-bg: #242424;
+      --adw-view-bg: #1e1e1e;
+      --adw-headerbar-bg: #303030;
+      --adw-headerbar-border: rgba(0, 0, 0, 0.45);
+      --adw-card-bg: #1e1e1e;
+      --adw-card-bg-elevated: #262626;
+      --adw-card-hover: #2e2e2e;
+      --adw-card-border: rgba(255, 255, 255, 0.08);
+      
+      --adw-text-primary: #ffffff;
+      --adw-text-secondary: rgba(255, 255, 255, 0.72);
+      --adw-text-dim: rgba(255, 255, 255, 0.45);
+
+      /* Official GNOME Adwaita Palette */
+      --adw-blue: #3584e4;       /* @accent_color */
+      --adw-blue-hover: #1c71d8;
+      --adw-green: #33d17a;      /* @success_color */
+      --adw-green-dim: rgba(51, 209, 122, 0.16);
+      --adw-yellow: #f5c211;     /* @warning_color */
+      --adw-yellow-dim: rgba(245, 194, 17, 0.16);
+      --adw-orange: #ff7800;     /* @orange_color */
+      --adw-orange-dim: rgba(255, 120, 0, 0.16);
+      --adw-red: #e01b24;        /* @destructive_color */
+      --adw-red-dim: rgba(224, 27, 36, 0.18);
+      --adw-purple: #9141ac;
+
+      --font-ui: "Cantarell", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--adw-window-bg);
+      color: var(--adw-text-primary);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      line-height: 1.45;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* AdwHeaderBar */
+    .header-bar {
+      height: 48px;
+      background-color: var(--adw-headerbar-bg);
+      border-bottom: 1px solid var(--adw-headerbar-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      user-select: none;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-left, .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 140px;
+    }
+
+    .header-right {
+      justify-content: flex-end;
+    }
+
+    .header-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .header-icon {
+      color: var(--adw-blue);
+      display: flex;
+      align-items: center;
+    }
+
+    /* AdwViewSwitcher (Center tabs) */
+    .view-switcher {
+      display: flex;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .view-tab {
+      border: none;
+      background: transparent;
+      color: var(--adw-text-secondary);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.12s ease;
+    }
+
+    .view-tab:hover {
+      color: var(--adw-text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .view-tab.active {
+      background: var(--adw-card-bg);
+      color: var(--adw-text-primary);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* AdwButton */
+    .btn {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--adw-card-border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--adw-text-primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.12s ease;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn:active {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-suggested {
+      background: var(--adw-blue);
+      border-color: var(--adw-blue);
+      color: #ffffff;
+    }
+
+    .btn-suggested:hover {
+      background: var(--adw-blue-hover);
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--adw-green-dim);
+      transition: all 0.2s ease;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--adw-green);
+      box-shadow: 0 0 6px rgba(46, 194, 89, 0.6);
+    }
+
+    .badge-status-offline {
+      background: rgba(224, 27, 36, 0.15) !important;
+    }
+
+    .status-dot-offline {
+      background: var(--adw-red) !important;
+      box-shadow: 0 0 6px rgba(224, 27, 36, 0.6);
+    }
+
+    /* Main Window Layout */
+    .main-window {
+      max-width: 980px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* GNOME Preferences Group (Boxed List Container) */
+    .pref-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pref-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--adw-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding-left: 6px;
+    }
+
+    .boxed-list {
+      background: var(--adw-card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--adw-card-border);
+      overflow: hidden;
+    }
+
+    /* Graph Section — GNOME System Monitor Style */
+    .graph-card {
+      background: var(--adw-card-bg);
+      border: 1px solid var(--adw-card-border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .graph-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .rate-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+    }
+
+    .indicator-box {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .indicator-rx { background: var(--adw-blue); }
+    .indicator-tx { background: var(--adw-orange); }
+
+    .rate-num {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    /* System Monitor Crisp Canvas */
+    .graph-canvas-box {
+      width: 100%;
+      height: 200px;
+      background: #181818;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas#gnomeTrafficCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .graph-footer {
+      display: flex;
+      justify-content: space-between;
+      color: var(--adw-text-dim);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      padding: 0 4px;
+    }
+
+    /* Grouped Action Rows */
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--adw-card-border);
+      transition: background 0.1s ease;
+    }
+
+    .action-row:last-child {
+      border-bottom: none;
+    }
+
+    .action-row:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .action-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .row-icon {
+      color: var(--adw-text-secondary);
+      display: flex;
+      align-items: center;
+    }
+
+    .action-titles {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .action-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--adw-text-primary);
+    }
+
+    .action-subtitle {
+      font-size: 12px;
+      color: var(--adw-text-secondary);
+    }
+
+    .action-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+    }
+
+    /* Progress bar — Adwaita GtkProgressBar style */
+    .adw-progress-track {
+      width: 140px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .adw-progress-fill {
+      height: 100%;
+      background: var(--adw-blue);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .adw-progress-fill.warning {
+      background: var(--adw-orange);
+    }
+
+    /* GNOME Clean Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--adw-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--adw-card-border);
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--adw-card-border);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--adw-text-primary);
+    }
+
+    .badge-active {
+      background: var(--adw-green-dim);
+      color: var(--adw-green);
+    }
+
+    .input-adw {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--adw-card-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: #fff;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .input-adw:focus {
+      border-color: var(--adw-blue);
+    }
+
+    /* Firewall Tactile Toggle Switches */
+    .switch-btn {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      font-family: var(--font-ui);
+    }
+    .switch-allow {
+      background: rgba(51, 209, 122, 0.15);
+      color: var(--adw-green);
+      border-color: rgba(51, 209, 122, 0.3);
+    }
+    .switch-allow:hover {
+      background: rgba(51, 209, 122, 0.25);
+    }
+    .switch-blocked {
+      background: rgba(224, 27, 36, 0.2);
+      color: var(--adw-red);
+      border-color: rgba(224, 27, 36, 0.4);
+    }
+    .switch-blocked:hover {
+      background: rgba(224, 27, 36, 0.3);
+    }
+    .adw-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      margin: 0;
+      vertical-align: middle;
+    }
+    .adw-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .adw-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.15);
+      transition: .2s ease;
+      border-radius: 24px;
+    }
+    .adw-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s ease;
+      border-radius: 50%;
+    }
+    .adw-switch input:checked + .adw-slider {
+      background-color: var(--adw-blue) !important;
+    }
+    .adw-switch input:checked + .adw-slider:before {
+      transform: translateX(20px);
+    }
+    /* 3-way Policy Segmented Control (Ergonomic 32px targets) */
+    .policy-group {
+      display: inline-flex;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--adw-card-border);
+      border-radius: 999px;
+      padding: 2px;
+      gap: 2px;
+      height: 32px;
+      align-items: center;
+    }
+    .policy-btn {
+      height: 26px;
+      padding: 0 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--adw-text-dim);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      font-family: var(--font-ui);
+    }
+    .policy-btn:hover {
+      color: var(--adw-text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .policy-btn.active-allow {
+      background: rgba(51, 209, 122, 0.22);
+      color: var(--adw-green);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .policy-btn.active-lan {
+      background: rgba(245, 194, 17, 0.25);
+      color: var(--adw-yellow);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .policy-btn.active-block {
+      background: rgba(224, 27, 36, 0.25);
+      color: var(--adw-red);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Native AdwSearchEntry */
+    .adw-search-entry {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.32);
+      border: 1px solid var(--adw-card-border);
+      border-radius: 999px;
+      height: 32px;
+      padding: 0 10px;
+      transition: all 0.15s ease;
+    }
+    .adw-search-entry:focus-within {
+      border-color: var(--adw-blue);
+      box-shadow: 0 0 0 1px var(--adw-blue);
+      background: rgba(0, 0, 0, 0.45);
+    }
+    .adw-search-entry .search-icon {
+      color: var(--adw-text-dim);
+      margin-right: 7px;
+      flex-shrink: 0;
+    }
+    .adw-search-entry input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      width: 170px;
+    }
+    .adw-search-entry .clear-btn {
+      background: transparent;
+      border: none;
+      color: var(--adw-text-dim);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 2px;
+      display: none;
+      line-height: 1;
+    }
+    .adw-search-entry .clear-btn:hover {
+      color: #fff;
+    }
+
+    /* GNOME Adwaita Overlay Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.32);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+    }
+
+    /* Accessible Focus Visible */
+    button:focus-visible, a:focus-visible, input:focus-visible {
+      outline: 2px solid var(--adw-blue) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* Responsive View Switcher for Narrow/Snapped Windows */
+    @media (max-width: 820px) {
+      .view-tab span {
+        display: none;
+      }
+      .view-tab {
+        padding: 6px 12px;
+      }
+      .view-tab svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    /* Embedded in native AdwApplicationWindow */
+    body.is-native .header-bar {
+      background: transparent;
+      border-bottom: 1px solid var(--adw-card-border);
+      height: 44px;
+      padding: 0 12px;
+    }
+    body.is-native .header-left {
+      display: none;
+    }
+    body.is-native .header-right {
+      min-width: auto;
+    }
+    body.is-native .view-switcher {
+      margin: 0 auto;
+    }
+
+    /* Adwaita Dialog Modal */
+    .adw-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .adw-modal-card {
+      background: var(--adw-headerbar-bg);
+      border: 1px solid var(--adw-card-border);
+      border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      width: 90%;
+      max-width: 440px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: modalPop 0.15s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .adw-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .adw-modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--adw-text-primary);
+    }
+
+    .adw-modal-close {
+      background: transparent;
+      border: none;
+      color: var(--adw-text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .adw-modal-close:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .adw-entry-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .adw-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    /* Tab hiding */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: flex; flex-direction: column; gap: 20px; }
+  </style>
+</head>
+<body>
+
+  <!-- AdwHeaderBar -->
+  <header class="header-bar">
+    <div class="header-left">
+      <div class="header-title-group">
+        <span class="header-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+          </svg>
+        </span>
+        <span>Network</span>
+      </div>
+    </div>
+
+    <!-- AdwViewSwitcher -->
+    <div class="view-switcher">
+      <button class="view-tab active" onclick="setTab('resources')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        Resources
+      </button>
+      <button class="view-tab" onclick="setTab('firewall')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        Firewall
+      </button>
+      <button class="view-tab" onclick="setTab('history')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        History
+      </button>
+      <button class="view-tab" onclick="setTab('processes')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
+        Processes
+      </button>
+      <button class="view-tab" onclick="setTab('connections')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        Connections
+      </button>
+      <button class="view-tab" onclick="setTab('tools')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+        Tools
+      </button>
+      <button class="view-tab" onclick="setTab('sentinel')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+        Sentinel
+      </button>
+    </div>
+
+    <div class="header-right" style="display:flex; align-items:center; gap:8px;">
+      <button class="btn" id="incognitoBtn" onclick="toggleIncognito()" title="Incognito Privacy Mode: Pauses database logging while keeping real-time monitors active" style="padding: 3px 9px; font-size: 11px; display:inline-flex; align-items:center; gap:5px; border-radius:999px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        <span id="incognitoLabel">Incognito</span>
+      </button>
+      <div class="badge-status" id="daemonStatusBadge" title="Online">
+        <span class="status-dot"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-window">
+
+    <!-- TAB 1: RESOURCES (GNOME System Monitor / Usage Style) -->
+    <div id="pane-resources" class="tab-pane active">
+      
+      <!-- Network Traffic Graph -->
+      <div class="pref-group">
+        <div class="pref-title">Network History</div>
+        <div class="graph-card">
+          <div class="graph-meta-bar">
+            <div class="rate-pill">
+              <span class="indicator-box indicator-rx"></span>
+              <span style="color:var(--adw-text-secondary);">Receiving:</span>
+              <span class="rate-num" id="rateRx">0 B/s</span>
+              <span style="color:var(--adw-text-dim); font-size:12px;" id="peakRx">(Peak: 0 B/s)</span>
+            </div>
+            <div class="rate-pill">
+              <span class="indicator-box indicator-tx"></span>
+              <span style="color:var(--adw-text-secondary);">Sending:</span>
+              <span class="rate-num" id="rateTx">0 B/s</span>
+              <span style="color:var(--adw-text-dim); font-size:12px;" id="peakTx">(Peak: 0 B/s)</span>
+            </div>
+          </div>
+
+          <div class="graph-canvas-box">
+            <canvas id="trafficCanvas"></canvas>
+          </div>
+
+          <div class="graph-footer">
+            <span>60 seconds ago</span>
+            <span id="graphMaxLabel">Max: 100 KB/s</span>
+            <span>Now</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Network Health & Sockets Strip -->
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+        <div class="boxed-list" style="padding: 14px 16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="font-size:11px; color:var(--adw-text-secondary); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Gateway Latency</div>
+            <span class="row-icon" style="width:24px; height:24px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </span>
+          </div>
+          <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:#fff; margin-top:4px;" id="statPing">-- ms</div>
+          <div style="font-size:11px; color:var(--adw-text-dim); margin-top:2px;">Target: 1.1.1.1 (Cloudflare DNS)</div>
+        </div>
+
+        <div class="boxed-list" style="padding: 14px 16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="font-size:11px; color:var(--adw-text-secondary); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Active Sockets</div>
+            <span class="row-icon" style="width:24px; height:24px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+            </span>
+          </div>
+          <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:var(--adw-blue); margin-top:4px;" id="statSockets">0</div>
+          <div style="font-size:11px; color:var(--adw-text-dim); margin-top:2px;">Currently open TCP & UDP streams</div>
+        </div>
+      </div>
+
+      <!-- Unified Data Plan & Budget Group -->
+      <div class="pref-group">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px;">
+          <div class="pref-title" style="margin-bottom:0;">Data Plan & Budget</div>
+          <button class="btn" style="padding: 3px 10px; font-size: 11px;" onclick="configureQuota()">Configure Limit</button>
+        </div>
+        <div class="graph-card" style="padding: 16px 20px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px;">
+            <div>
+              <div style="font-size:14px; font-weight:700; color:#fff;" id="quotaTitle">Monthly Allowance</div>
+              <div style="font-size:12px; color:var(--adw-text-secondary); margin-top:2px;" id="quotaSubtitle">No quota configured</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="quotaPctText" class="badge-pill" style="font-size:12px; font-weight:700;">--</span>
+            </div>
+          </div>
+
+          <div class="adw-progress-track" style="margin-bottom: 14px; height:8px;">
+            <div class="adw-progress-fill" id="quotaFill" style="width: 0%;"></div>
+          </div>
+
+          <!-- vnStat-style Forecast details -->
+          <div id="forecastDetailsRow" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; border-top: 1px solid var(--adw-card-border); padding-top:12px;">
+            <div>
+              <div style="font-size:11px; color:var(--adw-text-dim); text-transform:uppercase;">Pace Status</div>
+              <div style="margin-top:3px;"><span id="forecastBurnBadge" class="badge-pill" style="font-size:10px;">Off</span></div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--adw-text-dim); text-transform:uppercase;">Safe Daily Budget</div>
+              <div id="forecastDailyBudget" style="font-size:13px; font-weight:700; color:var(--adw-blue); font-family:var(--font-mono); margin-top:3px;">--</div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--adw-text-dim); text-transform:uppercase;">Projected Total</div>
+              <div id="forecastProjectedTotal" style="font-size:13px; font-weight:600; color:var(--adw-text-primary); font-family:var(--font-mono); margin-top:3px;">--</div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--adw-text-dim); text-transform:uppercase;">Estimated Cap Date</div>
+              <div id="forecastExhaustionDate" style="font-size:13px; font-weight:600; color:var(--adw-yellow); font-family:var(--font-mono); margin-top:3px;">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Network Devices Group -->
+      <div class="pref-group">
+        <div class="pref-title">Network Interfaces</div>
+        <div class="boxed-list" id="interfacesBoxedList">
+          <div class="action-row">
+            <span style="color:var(--adw-text-dim);">Scanning network interfaces...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop & System Settings Group -->
+      <div class="pref-group">
+        <div class="pref-title">Desktop & System Settings</div>
+        <div class="boxed-list">
+          <div class="action-row" style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span class="row-icon" style="width:28px; height:28px; color:var(--adw-blue); display:flex; align-items:center; justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              </span>
+              <div>
+                <div style="font-weight:600; color:#fff;">Launch NetFlow on Windows Startup</div>
+                <div style="font-size:12px; color:var(--adw-text-dim);" id="startupStatusDesc">Automatically starts NetFlow minimized in background upon user login</div>
+              </div>
+            </div>
+            <label class="adw-switch">
+              <input type="checkbox" id="toggleStartup" onchange="toggleStartupSetting(this.checked)">
+              <span class="adw-slider"></span>
+            </label>
+          </div>
+          <div class="action-row" style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-top:1px solid var(--adw-card-border);">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span class="row-icon" style="width:28px; height:28px; color:var(--adw-yellow); display:flex; align-items:center; justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              </span>
+              <div>
+                <div style="font-weight:600; color:#fff;">Desktop Toast Notifications</div>
+                <div style="font-size:12px; color:var(--adw-text-dim);">Trigger native Windows alerts for high-risk threats and data quota crossings</div>
+              </div>
+            </div>
+            <label class="adw-switch">
+              <input type="checkbox" id="toggleToasts" checked onchange="toggleToastSetting(this.checked)">
+              <span class="adw-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB: FIREWALL (GlassWire-Style Application Blocker) -->
+    <div id="pane-firewall" class="tab-pane">
+      
+      <!-- Firewall Master Protection Card -->
+      <div class="pref-group">
+        <div class="pref-title">Firewall & Security</div>
+        <div class="graph-card" style="display:flex; flex-direction:row; align-items:center; justify-content:space-between; padding: 18px 20px;">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="width:44px; height:44px; border-radius:12px; background:rgba(53, 132, 228, 0.15); border:1px solid rgba(53, 132, 228, 0.3); display:flex; align-items:center; justify-content:center; color:var(--adw-blue);" id="fwShieldIcon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <div>
+              <div style="font-size:16px; font-weight:700; color:#fff;" id="fwMasterTitle">Firewall Protection: Active</div>
+              <div style="font-size:12px; color:var(--adw-text-secondary);" id="fwMasterSubtitle">Intercepting unauthorized connections and enforcing policy</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button class="btn btn-suggested" id="fwMasterToggleBtn" onclick="toggleMasterFirewall()">Disable Firewall</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+        <div class="boxed-list" style="padding: 14px 16px;">
+          <div style="font-size:11px; color:var(--adw-text-secondary); text-transform:uppercase; font-weight:600;">Blocked Applications</div>
+          <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:var(--adw-red); margin-top:4px;" id="fwBlockedCount">0</div>
+        </div>
+        <div class="boxed-list" style="padding: 14px 16px;">
+          <div style="font-size:11px; color:var(--adw-text-secondary); text-transform:uppercase; font-weight:600;">Dropped Outbound Sockets</div>
+          <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:var(--adw-orange); margin-top:4px;" id="fwDroppedCount">0</div>
+        </div>
+        <div class="boxed-list" style="padding: 14px 16px;">
+          <div style="font-size:11px; color:var(--adw-text-secondary); text-transform:uppercase; font-weight:600;">Active Policy</div>
+          <div style="font-size:14px; font-weight:700; color:var(--adw-green); margin-top:8px; display:flex; align-items:center; gap:6px;">
+            <span class="status-dot"></span> Click-to-Block
+          </div>
+        </div>
+      </div>
+
+      <!-- Application Blocker List -->
+      <div class="pref-group">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px;">
+          <div class="pref-title" style="margin-bottom:0;">Application Network Access Rules</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div class="adw-search-entry">
+              <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="fwAppFilter" oninput="onSearchInput('fwAppFilter', 'fwClearBtn', filterFirewallApps)" placeholder="Search apps...">
+              <button type="button" class="clear-btn" id="fwClearBtn" onclick="clearSearchEntry('fwAppFilter', 'fwClearBtn', filterFirewallApps)" title="Clear search">✕</button>
+            </div>
+            <button class="btn" style="font-size:11px; padding:4px 10px; height:32px;" onclick="clearAllFirewallRules()">Unblock All</button>
+          </div>
+        </div>
+        <div class="boxed-list" id="firewallAppList">
+          <div class="action-row"><span style="color:var(--adw-text-dim);">Loading applications...</span></div>
+        </div>
+      </div>
+
+      <!-- Security Event Audit Log -->
+      <div class="pref-group">
+        <div class="pref-title">Security Event Audit Log</div>
+        <div class="boxed-list" style="max-height: 250px; overflow-y: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12px;">
+            <thead style="background: rgba(0,0,0,0.3); font-size: 11px; color: var(--adw-text-dim); text-transform: uppercase;">
+              <tr>
+                <th style="padding: 8px 12px;">Time</th>
+                <th style="padding: 8px 12px;">Application</th>
+                <th style="padding: 8px 12px;">PID</th>
+                <th style="padding: 8px 12px;">Destination Endpoint</th>
+                <th style="padding: 8px 12px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="fwEventsTbody">
+              <tr><td colspan="5" style="padding: 16px; text-align:center; color: var(--adw-text-dim);">No security events recorded yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: HISTORY (NetworkFlow Daily & Monthly Breakdown) -->
+    <div id="pane-history" class="tab-pane">
+      <div class="pref-group">
+        <div class="pref-title">Data Usage Summary</div>
+        <div class="boxed-list">
+          <div class="action-row">
+            <div class="action-left">
+              <span class="row-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </span>
+              <div class="action-titles">
+                <div class="action-title">Export Network Data</div>
+                <div class="action-subtitle">Download bandwidth and process statistics for analysis</div>
+              </div>
+            </div>
+            <div class="action-right" style="display:flex; gap:8px;">
+              <a href="/api/export/csv?type=daily" download="netflow_daily_history.csv" class="btn" style="font-size:11px; padding:5px 10px; display:inline-flex; align-items:center; gap:6px; text-decoration:none;">Daily CSV</a>
+              <a href="/api/export/csv?type=processes" download="netflow_applications.csv" class="btn" style="font-size:11px; padding:5px 10px; display:inline-flex; align-items:center; gap:6px; text-decoration:none;">Apps CSV</a>
+              <a href="/api/export/json" download="netflow_report.json" class="btn" style="font-size:11px; padding:5px 10px; display:inline-flex; align-items:center; gap:6px; text-decoration:none;">JSON</a>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="action-left">
+              <span class="row-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+              </span>
+              <div class="action-titles">
+                <div class="action-title">Today</div>
+                <div class="action-subtitle" id="histTodaySubtitle">Since 00:00 midnight</div>
+              </div>
+            </div>
+            <div class="action-right">
+              <span style="font-weight:700; font-size:15px; color:var(--adw-blue);" id="histTodayVal">0.00 MB</span>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="action-left">
+              <span class="row-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </span>
+              <div class="action-titles">
+                <div class="action-title">Yesterday</div>
+                <div class="action-subtitle">Full previous 24 hours</div>
+              </div>
+            </div>
+            <div class="action-right">
+              <span style="font-weight:600; font-size:14px;" id="histYestVal">0.00 MB</span>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="action-left">
+              <span class="row-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+              </span>
+              <div class="action-titles">
+                <div class="action-title">Last 7 Days</div>
+                <div class="action-subtitle">Rolling weekly consumption</div>
+              </div>
+            </div>
+            <div class="action-right">
+              <span style="font-weight:600; font-size:14px;" id="histWeekVal">0.00 MB</span>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="action-left">
+              <span class="row-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              </span>
+              <div class="action-titles">
+                <div class="action-title">Last 30 Days</div>
+                <div class="action-subtitle">Monthly total consumption</div>
+              </div>
+            </div>
+            <div class="action-right">
+              <span style="font-weight:700; font-size:15px; color:var(--adw-green);" id="histMonthVal">0.00 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Breakdown Table -->
+      <div class="pref-group">
+        <div class="pref-title">Daily Consumption History</div>
+        <div class="boxed-list" style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Downloaded (Rx)</th>
+                <th>Uploaded (Tx)</th>
+                <th>Total Consumption</th>
+              </tr>
+            </thead>
+            <tbody id="dailyHistoryTbody">
+              <tr><td colspan="4" style="text-align:center; color:var(--adw-text-dim);">Loading daily history...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top Cumulative Apps -->
+      <div class="pref-group">
+        <div class="pref-title">Cumulative Top Applications (Last 24h)</div>
+        <div class="boxed-list" style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Application Name</th>
+                <th>Received (Download)</th>
+                <th>Sent (Upload)</th>
+                <th>Total Consumed</th>
+              </tr>
+            </thead>
+            <tbody id="topAppsHistoryTbody">
+              <tr><td colspan="4" style="text-align:center; color:var(--adw-text-dim);">Loading top applications...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PROCESSES (GNOME Process List Style) -->
+    <div id="pane-processes" class="tab-pane">
+      <div class="pref-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div class="pref-title" style="padding: 0; margin-bottom: 0;">Active Network Processes</div>
+          <div class="adw-search-entry">
+            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="procFilter" oninput="onSearchInput('procFilter', 'procClearBtn', filterProcessTable)" placeholder="Search processes or PID...">
+            <button type="button" class="clear-btn" id="procClearBtn" onclick="clearSearchEntry('procFilter', 'procClearBtn', filterProcessTable)" title="Clear search">✕</button>
+          </div>
+        </div>
+        <div class="boxed-list" style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Process Name</th>
+                <th>PID</th>
+                <th>Transfer Rate (I/O)</th>
+                <th>Security &amp; Publisher</th>
+                <th>Open Sockets</th>
+                <th>Connected Remote Endpoints</th>
+                <th style="text-align:right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="procTbody">
+              <tr><td colspan="7" style="text-align:center; color:var(--adw-text-dim);">Detecting processes...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: CONNECTIONS (GNOME Netstat Style) -->
+    <div id="pane-connections" class="tab-pane">
+      <div class="pref-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div class="pref-title" style="padding: 0; margin-bottom: 0;">Active Socket Connections</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div class="adw-search-entry">
+              <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="connFilter" oninput="onSearchInput('connFilter', 'connClearBtn', filterNetstatTable)" placeholder="Filter sockets or host...">
+              <button type="button" class="clear-btn" id="connClearBtn" onclick="clearSearchEntry('connFilter', 'connClearBtn', filterNetstatTable)" title="Clear search">✕</button>
+            </div>
+            <button class="btn" onclick="fetchNetstat()">Refresh</button>
+          </div>
+        </div>
+        <div class="boxed-list" style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Application & Process</th>
+                <th>Remote Destination</th>
+                <th>Local Endpoint & State</th>
+                <th>Policy</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="netstatTbody">
+              <tr><td colspan="5" style="text-align:center; color:var(--adw-text-dim);">Loading connection table...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: TOOLS -->
+    <div id="pane-tools" class="tab-pane">
+      <div class="pref-group">
+        <div class="pref-title">Diagnostics & Network Probes</div>
+        <div class="boxed-list">
+          <div class="action-row">
+            <div class="action-left">
+              <div class="action-titles">
+                <div class="action-title">Ping Test</div>
+                <div class="action-subtitle">Send ICMP/TCP probe to test latency and packet loss</div>
+              </div>
+            </div>
+            <div class="action-right">
+              <input type="text" id="pingInput" class="input-adw" value="1.1.1.1" style="width: 140px;">
+              <button class="btn btn-suggested" onclick="runPing()">Run Ping</button>
+            </div>
+          </div>
+          <div id="pingOutputRow" class="action-row" style="display:none; font-family:var(--font-mono); font-size:13px; color:var(--adw-text-secondary); background:rgba(0,0,0,0.15);">
+            <!-- Ping results -->
+          </div>
+
+          <div class="action-row">
+            <div class="action-left">
+              <div class="action-titles">
+                <div class="action-title">Bandwidth Speed Test</div>
+                <div class="action-subtitle">Benchmark current download throughput via CDN probe</div>
+              </div>
+            </div>
+            <div class="action-right">
+              <span id="speedtestVal" style="font-weight:700; color:var(--adw-text-primary);">-- Mbps</span>
+              <button class="btn btn-suggested" id="speedtestBtn" onclick="runSpeedtest()">Start Test</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pref-group">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div class="pref-title" style="padding:0;">Local Subnet Devices (ARP)</div>
+          <button class="btn" onclick="scanDevices()">Scan Subnet</button>
+        </div>
+        <div class="boxed-list" style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>IP Address</th>
+                <th>MAC Address</th>
+                <th>Vendor</th>
+                <th>Interface</th>
+                <th>Hostname</th>
+              </tr>
+            </thead>
+            <tbody id="devicesTbody">
+              <tr><td colspan="5" style="text-align:center; color:var(--adw-text-dim);">Click "Scan Subnet" to discover neighbor devices.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Wi-Fi Analyzer (NetworkFlow Feature) -->
+      <div class="pref-group">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div class="pref-title" style="padding:0;">Wi-Fi Analyzer & Channel Spectrum</div>
+          <button class="btn btn-suggested" onclick="scanWifi()">Scan Wi-Fi</button>
+        </div>
+        <div class="boxed-list" style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Network (SSID)</th>
+                <th>BSSID</th>
+                <th>Channel</th>
+                <th>Band</th>
+                <th>Signal Strength</th>
+                <th>Security</th>
+              </tr>
+            </thead>
+            <tbody id="wifiTbody">
+              <tr><td colspan="6" style="text-align:center; color:var(--adw-text-dim); padding:16px;">Click "Scan Wi-Fi" to scan local wireless spectrum and channels.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SENTINEL (Adopted from NetWatch-Sentinel) -->
+    <div id="pane-sentinel" class="tab-pane">
+      
+      <!-- 1. THREAT & SECURITY RADAR -->
+      <div class="pref-group">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <div class="pref-title" style="padding:0; margin-bottom:2px;">Threat Radar &amp; Authenticode Verification</div>
+            <div style="font-size:12px; color:var(--adw-text-secondary);">Real-time Trojan masquerading detection, digital signature verification, and anomalous port analysis</div>
+          </div>
+          <button class="btn btn-suggested" onclick="fetchThreats()">Deep Threat Scan</button>
+        </div>
+        <div class="boxed-list" style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Process</th>
+                <th>PID</th>
+                <th>Risk Level</th>
+                <th>Digital Signature &amp; Publisher</th>
+                <th>Detected Threat Flags</th>
+                <th>I/O Bandwidth</th>
+                <th style="text-align:right;">Active Defense</th>
+              </tr>
+            </thead>
+            <tbody id="sentinelThreatsTbody">
+              <tr><td colspan="7" style="text-align:center; color:var(--adw-text-dim);">Scanning processes and verifying root certificates...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. QoS DSCP TRAFFIC PRIORITIZER -->
+      <div class="pref-group">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <div class="pref-title" style="padding:0; margin-bottom:2px;">Kernel QoS Traffic Shaping &amp; Gaming Booster</div>
+            <div style="font-size:12px; color:var(--adw-text-secondary);">Inject Layer-3 DSCP Expedited Forwarding (EF 46) tags into tcpip.sys via Windows Group Policy QoS</div>
+          </div>
+          <span id="qosAdminBadge" class="badge-pill" style="font-size:11px;">Checking elevation...</span>
+        </div>
+        
+        <div class="boxed-list" style="padding:14px; margin-bottom:12px; display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+          <input type="text" id="qosProcInput" class="input-adw" placeholder="Executable (e.g. cs2.exe, valorant.exe)" style="flex:1; min-width:180px;">
+          <select id="qosDscpSelect" class="input-adw" style="width:260px;">
+            <option value="46" selected>DSCP 46 EF (Competitive Gaming / VoIP)</option>
+            <option value="34">DSCP 34 AF41 (Video Streaming / Conf)</option>
+            <option value="8">DSCP 8 CS1 (Background / Torrent Throttle)</option>
+          </select>
+          <button class="btn btn-suggested" onclick="applyQosPolicy()">Prioritize Application</button>
+        </div>
+
+        <div class="boxed-list" style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Rule Name</th>
+                <th>Target Application</th>
+                <th>DSCP Priority Tier</th>
+                <th>Bandwidth Cap</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="qosPoliciesTbody">
+              <tr><td colspan="5" style="text-align:center; color:var(--adw-text-dim);">No active QoS priority rules.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. PRIVACY TUNNEL & TOR GATEWAY -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">
+        
+        <!-- Driverless VPN -->
+        <div class="pref-group">
+          <div class="pref-title" style="padding:0; margin-bottom:4px;">Driverless SSTP/L2TP VPN Tunnel</div>
+          <div style="font-size:12px; color:var(--adw-text-secondary); margin-bottom:12px;">Zero-install native Windows WAN Miniport gateway router via rasdial</div>
+          
+          <div class="boxed-list" style="padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <span style="font-weight:600;">Tunnel Status:</span>
+              <span id="vpnStateBadge" class="badge-pill" style="background:var(--adw-card-bg-elevated);">Disconnected</span>
+            </div>
+            
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px; color:var(--adw-text-dim); display:block; margin-bottom:4px;">Fast Relay Gateway:</label>
+              <select id="vpnRelaySelect" class="input-adw" style="width:100%;">
+                <option value="public-vpn-58.opengw.net">Japan [JP] - 286 Mbps (18ms)</option>
+                <option value="public-vpn-90.opengw.net">United States [US] - 110 Mbps (45ms)</option>
+                <option value="public-vpn-148.opengw.net">Germany [DE] - 132 Mbps (35ms)</option>
+                <option value="public-vpn-43.opengw.net">Korea [KR] - 116 Mbps (28ms)</option>
+              </select>
+            </div>
+
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-suggested" id="vpnConnectBtn" onclick="toggleVpnConnect()" style="flex:1;">Connect VPN</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tor Gateway -->
+        <div class="pref-group">
+          <div class="pref-title" style="padding:0; margin-bottom:4px;">Tor Onion Privacy &amp; WinINet Proxy</div>
+          <div style="font-size:12px; color:var(--adw-text-secondary); margin-bottom:12px;">System-wide WinINet proxy routing (Note: Non-WinINet apps & UDP DNS queries may bypass proxy)</div>
+          
+          <div class="boxed-list" style="padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <span style="font-weight:600;">Tor SOCKS Service:</span>
+              <span id="torProbeBadge" class="badge-pill" style="background:var(--adw-card-bg-elevated);">Probing...</span>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+              <span style="font-weight:600;">System-Wide Proxy:</span>
+              <span id="torProxyStateBadge" class="badge-pill" style="background:var(--adw-card-bg-elevated);">Direct (Disabled)</span>
+            </div>
+
+            <button class="btn btn-suggested" id="torToggleBtn" onclick="toggleTorProxy()" style="width:100%;">Route Windows Traffic Through Tor</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    const MAX_POINTS = 60;
+    let rxHistory = new Array(MAX_POINTS).fill(0);
+    let txHistory = new Array(MAX_POINTS).fill(0);
+
+    const canvas = document.getElementById("trafficCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+      const box = canvas.parentElement;
+      const rect = box ? box.getBoundingClientRect() : null;
+      const w = (rect && rect.width > 20) ? rect.width : (canvas.clientWidth || 800);
+      const h = (rect && rect.height > 20) ? rect.height : (canvas.clientHeight || 200);
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      renderGnomeGraph();
+    }
+    window.addEventListener("resize", resizeCanvas);
+
+    // Pre-populate graph history from backend on startup
+    async function initHistoryGraph() {
+      try {
+        const res = await fetch("/api/stats/history");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.points && data.points.length > 0) {
+            const rxPts = data.points.map(p => p.rx_speed || 0);
+            const txPts = data.points.map(p => p.tx_speed || 0);
+            const startIdx = Math.max(0, rxPts.length - MAX_POINTS);
+            const sliceRx = rxPts.slice(startIdx);
+            const sliceTx = txPts.slice(startIdx);
+            for (let i = 0; i < sliceRx.length; i++) {
+              rxHistory[MAX_POINTS - sliceRx.length + i] = sliceRx[i];
+              txHistory[MAX_POINTS - sliceTx.length + i] = sliceTx[i];
+            }
+          }
+        }
+      } catch (e) {}
+      renderGnomeGraph();
+    }
+
+    // Pure GNOME System Monitor Canvas Renderer (With gradient fill, grid labels, and pulse indicators)
+    function renderGnomeGraph() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
+
+      if (!width || !height) return;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Clean GNOME background grid
+      const gridYCount = 4;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= gridYCount; i++) {
+        const y = (height / gridYCount) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Time markers every 10 points
+      const step = width / (MAX_POINTS - 1);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.025)";
+      for (let i = 0; i < MAX_POINTS; i += 10) {
+        const x = i * step;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+
+      // Max scale calculation
+      const maxVal = Math.max(...rxHistory, ...txHistory, 1024 * 50); // min scale 50 KB/s
+      document.getElementById("graphMaxLabel").textContent = "Max: " + formatBytes(maxVal) + "/s";
+
+      const baselineY = height - 4;
+
+      // 1. Receiving Wave (Blue #3584e4 with gradient fill)
+      ctx.beginPath();
+      ctx.moveTo(0, baselineY);
+      for (let i = 0; i < MAX_POINTS; i++) {
+        const x = i * step;
+        const speed = rxHistory[i] || 0;
+        const y = baselineY - (speed / maxVal) * (height - 20);
+        ctx.lineTo(x, Math.max(8, y));
+      }
+      ctx.lineTo(width, baselineY);
+      ctx.closePath();
+      const rxGrad = ctx.createLinearGradient(0, 0, 0, height);
+      rxGrad.addColorStop(0, "rgba(53, 132, 228, 0.35)");
+      rxGrad.addColorStop(1, "rgba(53, 132, 228, 0.02)");
+      ctx.fillStyle = rxGrad;
+      ctx.fill();
+
+      // Rx Line Stroke
+      ctx.beginPath();
+      for (let i = 0; i < MAX_POINTS; i++) {
+        const x = i * step;
+        const speed = rxHistory[i] || 0;
+        const y = baselineY - (speed / maxVal) * (height - 20);
+        if (i === 0) ctx.moveTo(x, Math.max(8, y));
+        else ctx.lineTo(x, Math.max(8, y));
+      }
+      ctx.strokeStyle = "#3584e4";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 2. Sending Wave (Yellow/Orange #f6d32d with gradient fill)
+      ctx.beginPath();
+      ctx.moveTo(0, baselineY);
+      for (let i = 0; i < MAX_POINTS; i++) {
+        const x = i * step;
+        const speed = txHistory[i] || 0;
+        const y = baselineY - (speed / maxVal) * (height - 20);
+        ctx.lineTo(x, Math.max(8, y));
+      }
+      ctx.lineTo(width, baselineY);
+      ctx.closePath();
+      const txGrad = ctx.createLinearGradient(0, 0, 0, height);
+      txGrad.addColorStop(0, "rgba(246, 211, 45, 0.28)");
+      txGrad.addColorStop(1, "rgba(246, 211, 45, 0.01)");
+      ctx.fillStyle = txGrad;
+      ctx.fill();
+
+      // Tx Line Stroke
+      ctx.beginPath();
+      for (let i = 0; i < MAX_POINTS; i++) {
+        const x = i * step;
+        const speed = txHistory[i] || 0;
+        const y = baselineY - (speed / maxVal) * (height - 20);
+        if (i === 0) ctx.moveTo(x, Math.max(8, y));
+        else ctx.lineTo(x, Math.max(8, y));
+      }
+      ctx.strokeStyle = "#f6d32d";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 3. Live Current Value Pulse Dots
+      const lastRxY = baselineY - ((rxHistory[MAX_POINTS - 1] || 0) / maxVal) * (height - 20);
+      const lastTxY = baselineY - ((txHistory[MAX_POINTS - 1] || 0) / maxVal) * (height - 20);
+
+      ctx.fillStyle = "#3584e4";
+      ctx.beginPath();
+      ctx.arc(width - 2, Math.max(8, lastRxY), 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#f6d32d";
+      ctx.beginPath();
+      ctx.arc(width - 2, Math.max(8, lastTxY), 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Tab Switching
+    function setTab(tabId) {
+      document.querySelectorAll(".view-tab").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+
+      const activeBtn = Array.from(document.querySelectorAll(".view-tab")).find(b => b.getAttribute("onclick").includes(tabId));
+      if (activeBtn) activeBtn.classList.add("active");
+
+      const pane = document.getElementById("pane-" + tabId);
+      if (pane) pane.classList.add("active");
+
+      if (tabId === "connections") fetchNetstat();
+      if (tabId === "history") fetchHistoryData();
+      if (tabId === "processes") renderProcesses(allProcessesCache);
+      if (tabId === "firewall") fetchFirewallStatus();
+      if (tabId === "sentinel") fetchSentinelData();
+      if (tabId === "resources") {
+        resizeCanvas();
+        renderGnomeGraph();
+      }
+    }
+
+    function checkHash() {
+      const hash = window.location.hash.replace("#", "");
+      if (["resources", "firewall", "history", "processes", "connections", "tools", "sentinel"].includes(hash)) {
+        setTab(hash);
+      }
+    }
+    window.addEventListener("hashchange", checkHash);
+
+    let allProcessesCache = [];
+
+    async function pollData() {
+      try {
+        const res = await fetch("/api/stats/realtime");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        // Update status badge to Live
+        const badge = document.getElementById("daemonStatusBadge");
+        if (badge) {
+          badge.className = "badge-status";
+          badge.innerHTML = '<span class="status-dot"></span>';
+          badge.title = "Online";
+        }
+
+        // Update rates
+        document.getElementById("rateRx").textContent = data.total_rx_speed_human || "0 B/s";
+        document.getElementById("rateTx").textContent = data.total_tx_speed_human || "0 B/s";
+        document.getElementById("peakRx").textContent = "(Peak: " + formatBytes(data.peak_rx_speed) + "/s)";
+        document.getElementById("peakTx").textContent = "(Peak: " + formatBytes(data.peak_tx_speed) + "/s)";
+
+        document.getElementById("statSockets").textContent = (data.active_sockets || 0) + " open";
+        document.getElementById("statPing").textContent = (data.ping_latency_ms !== null && data.ping_latency_ms !== undefined) ? data.ping_latency_ms.toFixed(1) + " ms" : "-- ms";
+
+        // Graph push
+        rxHistory.shift();
+        rxHistory.push(data.total_rx_speed_bps || 0);
+        txHistory.shift();
+        txHistory.push(data.total_tx_speed_bps || 0);
+        renderGnomeGraph();
+
+        // Render interfaces boxed list
+        renderInterfaces(data.interfaces || {});
+
+        // Processes
+        allProcessesCache = data.top_processes || [];
+        renderProcesses(allProcessesCache);
+
+        // Keep firewall app list updated if firewall tab is currently open
+        const fwPane = document.getElementById("pane-firewall");
+        if (fwPane && fwPane.classList.contains("active")) {
+          renderFirewallApps(allProcessesCache, cachedFirewallPolicies);
+        }
+      } catch (e) {
+        console.warn("pollData error:", e);
+        const badge = document.getElementById("daemonStatusBadge");
+        if (badge) {
+          badge.className = "badge-status badge-status-offline";
+          badge.innerHTML = '<span class="status-dot status-dot-offline"></span>';
+          badge.title = "Reconnecting...";
+        }
+      }
+    }
+
+    function renderInterfaces(ifaces) {
+      const container = document.getElementById("interfacesBoxedList");
+      if (!ifaces || Object.keys(ifaces).length === 0) {
+        container.innerHTML = '<div class="action-row"><span style="color:var(--adw-text-dim);">No active network hardware devices</span></div>';
+        return;
+      }
+      let html = "";
+      for (const [name, info] of Object.entries(ifaces)) {
+        let ifType = "Network Adapter";
+        let ifIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>';
+        if (name.startsWith("wl") || name.startsWith("wifi")) {
+          ifType = "Wi-Fi Wireless";
+          ifIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>';
+        } else if (name.startsWith("en") || name.startsWith("eth")) {
+          ifType = "Wired Ethernet";
+          ifIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"></rect><rect x="6" y="14" width="12" height="8" rx="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="10" y1="18" x2="10.01" y2="18"></line></svg>';
+        } else if (name.startsWith("wwan") || name.startsWith("gsm") || name.startsWith("lte") || name.startsWith("cell")) {
+          ifType = "Cellular / Mobile Data";
+          ifIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20"></path><path d="M5 20v-4"></path><path d="M9 20v-8"></path><path d="M13 20v-12"></path><path d="M17 20v-16"></path></svg>';
+        } else if (name.startsWith("tun") || name.startsWith("tap") || name.startsWith("wg")) {
+          ifType = "VPN Tunnel";
+          ifIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+        }
+
+        html += `
+          <div class="action-row">
+            <div class="action-left">
+              <span class="row-icon">
+                ${ifIcon}
+              </span>
+              <div class="action-titles">
+                <div class="action-title" style="display:flex; align-items:center; gap:8px;">
+                  ${escapeHtml(name)}
+                  <span class="badge-pill" style="font-size:10px; font-weight:600; text-transform:none;">${ifType}</span>
+                </div>
+                <div class="action-subtitle">${formatBytes(info.total_rx)} received, ${formatBytes(info.total_tx)} sent</div>
+              </div>
+            </div>
+            <div class="action-right">
+              <span style="color:var(--adw-blue); font-weight:600; font-family:var(--font-mono);">▼ ${formatSpeed(info.rx_speed)}</span>
+              <span style="color:var(--adw-orange); font-weight:600; font-family:var(--font-mono);">▲ ${formatSpeed(info.tx_speed)}</span>
+            </div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function renderProcesses(apps) {
+      const tbody = document.getElementById("procTbody");
+      if (!apps || apps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--adw-text-dim);">No active sockets</td></tr>';
+        return;
+      }
+      let html = "";
+      for (const p of apps) {
+        const remotes = (p.remote_endpoints || []).join(", ") || "Listening / Idle";
+
+        let speedStr = "-";
+        if (p.transfer_rate_kbps > 0) {
+          speedStr = p.transfer_rate_kbps >= 1024 
+            ? (p.transfer_rate_kbps / 1024).toFixed(1) + " MB/s" 
+            : p.transfer_rate_kbps.toFixed(1) + " KB/s";
+        } else if (p.rx_speed > 0 || p.tx_speed > 0) {
+          speedStr = formatSpeed(p.rx_speed + p.tx_speed);
+        }
+
+        let threatBadge = '<span class="badge-pill" style="background:var(--adw-green-dim); color:var(--adw-green); font-size:11px;">Safe</span>';
+        let pubStr = p.threat?.publisher ? `<span style="font-size:11px; color:var(--adw-text-dim); margin-left:6px;">${escapeHtml(p.threat.publisher)}</span>` : "";
+
+        if (p.threat) {
+          if (p.threat.level === 3) {
+            threatBadge = `<span class="badge-pill" style="background:var(--adw-red-dim); color:var(--adw-red); font-size:11px; cursor:help;" title="${escapeHtml((p.threat.flags || []).join('; '))}">High Risk</span>`;
+          } else if (p.threat.level === 2) {
+            threatBadge = `<span class="badge-pill" style="background:var(--adw-yellow-dim); color:var(--adw-yellow); font-size:11px; cursor:help;" title="${escapeHtml((p.threat.flags || []).join('; '))}">Suspicious</span>`;
+          } else if (p.threat.level === 1) {
+            threatBadge = `<span class="badge-pill" style="background:var(--adw-orange-dim); color:var(--adw-orange); font-size:11px;">Unsigned</span>`;
+          }
+        }
+
+        const killBtn = (p.pid && p.pid > 4)
+          ? `<button class="btn btn-destructive" style="padding:3px 9px; font-size:11px;" onclick="killProcessAction(${p.pid}, '${escapeHtml(p.name)}')">Kill</button>`
+          : `<span style="color:var(--adw-text-dim);">-</span>`;
+
+        html += `
+          <tr>
+            <td style="font-weight:600; color:var(--adw-text-primary);">${escapeHtml(p.name)}</td>
+            <td style="font-family:var(--font-mono); color:var(--adw-text-secondary);">${p.pid || "-"}</td>
+            <td style="font-family:var(--font-mono); color:var(--adw-blue); font-weight:600;">${speedStr}</td>
+            <td>${threatBadge} ${pubStr}</td>
+            <td><span class="badge-pill badge-active">${p.active_connections}</span></td>
+            <td style="font-family:var(--font-mono); font-size:12px; color:var(--adw-text-secondary);">${escapeHtml(remotes)}</td>
+            <td style="text-align:right;">${killBtn}</td>
+          </tr>
+        `;
+      }
+      tbody.innerHTML = html;
+    }
+
+    function filterProcessTable() {
+      const q = document.getElementById("procFilter").value.toLowerCase();
+      const filtered = allProcessesCache.filter(p => p.name.toLowerCase().includes(q) || String(p.pid).includes(q));
+      renderProcesses(filtered);
+    }
+
+    // --- INCOGNITO PRIVACY MODE ---
+    let isIncognito = false;
+
+    async function fetchIncognitoStatus() {
+      try {
+        const res = await fetch("/api/monitor/status");
+        if (res.ok) {
+          const data = await res.json();
+          updateIncognitoUI(data.incognito);
+        }
+      } catch (e) {}
+    }
+
+    async function toggleIncognito() {
+      try {
+        const res = await fetch("/api/monitor/incognito", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: !isIncognito })
+        });
+        const data = await res.json();
+        updateIncognitoUI(data.incognito);
+      } catch (e) {
+        console.warn("toggleIncognito error:", e);
+      }
+    }
+
+    function updateIncognitoUI(active) {
+      isIncognito = Boolean(active);
+      const btn = document.getElementById("incognitoBtn");
+      const label = document.getElementById("incognitoLabel");
+      if (!btn || !label) return;
+      if (isIncognito) {
+        btn.style.background = "rgba(245, 158, 11, 0.22)";
+        btn.style.borderColor = "var(--adw-yellow)";
+        btn.style.color = "var(--adw-yellow)";
+        label.textContent = "Incognito: On";
+      } else {
+        btn.style.background = "";
+        btn.style.borderColor = "";
+        btn.style.color = "";
+        label.textContent = "Incognito";
+      }
+    }
+
+    // --- FIREWALL & GRANULAR APPLICATION POLICY CLIENT ---
+    let cachedFirewallPolicies = {};
+    let isFirewallMasterEnabled = true;
+
+    async function fetchFirewallStatus() {
+      try {
+        const res = await fetch("/api/firewall/status");
+        if (!res.ok) return;
+        const data = await res.json();
+        isFirewallMasterEnabled = data.enabled;
+        cachedFirewallPolicies = data.policies || {};
+
+        const btn = document.getElementById("fwMasterToggleBtn");
+        const title = document.getElementById("fwMasterTitle");
+        const subtitle = document.getElementById("fwMasterSubtitle");
+        const icon = document.getElementById("fwShieldIcon");
+
+        if (data.enabled) {
+          btn.textContent = "Disable Firewall";
+          btn.className = "btn";
+          title.textContent = "Firewall Protection: Active";
+          subtitle.textContent = "Filtering outbound traffic and enforcing granular policies";
+          icon.style.background = "rgba(53, 132, 228, 0.15)";
+          icon.style.color = "var(--adw-blue)";
+        } else {
+          btn.textContent = "Enable Firewall";
+          btn.className = "btn btn-suggested";
+          title.textContent = "Firewall Protection: Disabled";
+          subtitle.textContent = "Traffic filtering is paused. Applications can connect without restriction.";
+          icon.style.background = "rgba(224, 27, 36, 0.15)";
+          icon.style.color = "var(--adw-red)";
+        }
+
+        document.getElementById("fwBlockedCount").textContent = data.blocked_count || 0;
+        document.getElementById("fwDroppedCount").textContent = data.total_blocked_connections || 0;
+
+        renderFirewallApps(allProcessesCache, cachedFirewallPolicies);
+
+        // Security events log
+        const eventsTbody = document.getElementById("fwEventsTbody");
+        if (!data.recent_events || data.recent_events.length === 0) {
+          eventsTbody.innerHTML = '<tr><td colspan="5" style="padding:16px; text-align:center; color:var(--adw-text-dim);">No security events recorded yet</td></tr>';
+        } else {
+          let html = "";
+          for (const ev of data.recent_events) {
+            const timeStr = new Date(ev.timestamp * 1000).toLocaleTimeString();
+            let actionBadge = '<span class="badge-pill" style="background:rgba(224, 27, 36, 0.2); color:var(--adw-red); font-size:10px;">BLOCKED</span>';
+            if (ev.action === "FIRST_SEEN") {
+              actionBadge = '<span class="badge-pill" style="background:rgba(53, 132, 228, 0.2); color:var(--adw-blue); font-size:10px;">FIRST SEEN</span>';
+            } else if (ev.action === "BLOCKED_WAN") {
+              actionBadge = '<span class="badge-pill" style="background:rgba(245, 158, 11, 0.2); color:var(--adw-yellow); font-size:10px;">WAN BLOCKED</span>';
+            }
+            html += `
+              <tr style="border-bottom: 1px solid var(--adw-card-border);">
+                <td style="padding: 8px 12px; font-family:var(--font-mono); color:var(--adw-text-secondary);">${timeStr}</td>
+                <td style="padding: 8px 12px; font-weight:600; color:#fff;">${escapeHtml(ev.process_name)}</td>
+                <td style="padding: 8px 12px; font-family:var(--font-mono); color:var(--adw-text-secondary);">${ev.pid || "-"}</td>
+                <td style="padding: 8px 12px; font-family:var(--font-mono); color:var(--adw-text-secondary);">${escapeHtml(ev.remote_endpoint || "-")}</td>
+                <td style="padding: 8px 12px;">${actionBadge}</td>
+              </tr>
+            `;
+          }
+          eventsTbody.innerHTML = html;
+        }
+      } catch (e) {
+        console.warn("fetchFirewallStatus error:", e);
+      }
+    }
+
+    async function toggleMasterFirewall() {
+      try {
+        const res = await fetch("/api/firewall/toggle", { method: "POST" });
+        if (res.ok) fetchFirewallStatus();
+      } catch (e) {}
+    }
+
+    async function setAppPolicy(procName, policy) {
+      try {
+        await fetch("/api/firewall/policy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ process_name: procName, policy: policy })
+        });
+        fetchFirewallStatus();
+      } catch (e) {
+        console.warn("setAppPolicy error:", e);
+      }
+    }
+
+    async function clearAllFirewallRules() {
+      try {
+        await fetch("/api/firewall/clear", { method: "POST" });
+        fetchFirewallStatus();
+      } catch (e) {}
+    }
+
+    function filterFirewallApps() {
+      renderFirewallApps(allProcessesCache, cachedFirewallPolicies);
+    }
+
+    function renderFirewallApps(apps, policyMap) {
+      const container = document.getElementById("firewallAppList");
+      const filterInput = document.getElementById("fwAppFilter");
+      const q = (filterInput ? filterInput.value : "").toLowerCase().trim();
+
+      const appMap = new Map();
+      for (const p of (apps || [])) {
+        if (!p.name || p.name.startsWith("system/")) continue;
+        appMap.set(p.name, p);
+      }
+      for (const b of Object.keys(policyMap || {})) {
+        if (!appMap.has(b)) {
+          appMap.set(b, { name: b, pid: "-", active_connections: 0, cmdline: b });
+        }
+      }
+
+      let appList = Array.from(appMap.values());
+      if (q) {
+        appList = appList.filter(a => a.name.toLowerCase().includes(q) || String(a.pid).includes(q));
+      }
+
+      if (appList.length === 0) {
+        container.innerHTML = '<div class="action-row"><span style="color:var(--adw-text-dim);">No applications found</span></div>';
+        return;
+      }
+
+      let html = "";
+      for (const app of appList) {
+        let pol = (policyMap && policyMap[app.name]) ? policyMap[app.name].toLowerCase() : "allow";
+        if (pol === "1" || pol === "true") pol = "block";
+        if (pol === "0" || pol === "false") pol = "allow";
+
+        let rowStyle = "";
+        let statusBadge = "";
+        if (pol === "block") {
+          rowStyle = 'style="background: rgba(224, 27, 36, 0.07); border-left: 4px solid var(--adw-red);"';
+          statusBadge = '<span class="badge-pill" style="background:rgba(224, 27, 36, 0.2); color:var(--adw-red); font-size:10px;">FIREWALL BLOCKED</span>';
+        } else if (pol === "lan_only") {
+          rowStyle = 'style="background: rgba(245, 158, 11, 0.07); border-left: 4px solid var(--adw-yellow);"';
+          statusBadge = '<span class="badge-pill" style="background:rgba(245, 158, 11, 0.2); color:var(--adw-yellow); font-size:10px;">LAN ONLY (WAN BLOCKED)</span>';
+        }
+
+        let iconSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>';
+        const nLower = app.name.toLowerCase();
+        if (nLower.includes("chrome") || nLower.includes("firefox") || nLower.includes("brave") || nLower.includes("edge")) {
+          iconSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="21.17" y1="8" x2="12" y2="8"></line><line x1="3.95" y1="6.06" x2="8.54" y2="14"></line><line x1="10.88" y1="21.94" x2="15.46" y2="14"></line></svg>';
+        } else if (nLower.includes("terminal") || nLower.includes("bash") || nLower.includes("zsh") || nLower.includes("python")) {
+          iconSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>';
+        } else if (nLower.includes("discord") || nLower.includes("slack") || nLower.includes("telegram")) {
+          iconSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+        }
+
+        html += `
+          <div class="action-row" ${rowStyle}>
+            <div class="action-left">
+              <span class="row-icon">
+                ${iconSvg}
+              </span>
+              <div class="action-titles">
+                <div class="action-title" style="display:flex; align-items:center; gap:8px;">
+                  <span>${escapeHtml(app.name)}</span>
+                  ${statusBadge}
+                </div>
+                <div class="action-subtitle">${app.active_connections || 0} active socket streams • PID: ${app.pid || "-"}</div>
+              </div>
+            </div>
+            <div class="action-right">
+              <div class="policy-group">
+                <button class="policy-btn ${pol === 'allow' ? 'active-allow' : ''}" onclick="setAppPolicy('${escapeHtml(app.name)}', 'allow')" title="Unrestricted network access">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Allow
+                </button>
+                <button class="policy-btn ${pol === 'lan_only' ? 'active-lan' : ''}" onclick="setAppPolicy('${escapeHtml(app.name)}', 'lan_only')" title="Local network only (blocks public internet)">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="8" rx="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line></svg>
+                  LAN Only
+                </button>
+                <button class="policy-btn ${pol === 'block' ? 'active-block' : ''}" onclick="setAppPolicy('${escapeHtml(app.name)}', 'block')" title="Completely blocked from network">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  Block
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function onSearchInput(inputId, clearBtnId, callback) {
+      const input = document.getElementById(inputId);
+      const clearBtn = document.getElementById(clearBtnId);
+      if (clearBtn && input) {
+        clearBtn.style.display = input.value.length > 0 ? "inline-block" : "none";
+      }
+      if (callback) callback();
+    }
+
+    function clearSearchEntry(inputId, clearBtnId, callback) {
+      const input = document.getElementById(inputId);
+      const clearBtn = document.getElementById(clearBtnId);
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
+      if (clearBtn) clearBtn.style.display = "none";
+      if (callback) callback();
+    }
+
+    let allSocketsCache = [];
+
+    function renderNetstatRows(sockets) {
+      const tbody = document.getElementById("netstatTbody");
+      if (!sockets || sockets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--adw-text-dim);">No matching connections found</td></tr>';
+        return;
+      }
+      let html = "";
+      for (const s of sockets) {
+        let scopeBadge = '<span class="badge-pill" style="font-size:10px; background:rgba(255,255,255,0.06); color:var(--adw-text-dim);">LOCAL</span>';
+        if (s.scope === "lan") {
+          scopeBadge = '<span class="badge-pill" style="font-size:10px; background:rgba(51, 209, 122, 0.15); color:var(--adw-green);">LAN</span>';
+        } else if (s.scope === "wan") {
+          scopeBadge = '<span class="badge-pill" style="font-size:10px; background:rgba(53, 132, 228, 0.18); color:var(--adw-blue);">WAN</span>';
+        }
+
+        let policyBadge = '<span style="color:var(--adw-green); font-size:11px; font-weight:600;">Allow</span>';
+        if (s.policy === "block") {
+          policyBadge = '<span class="badge-pill" style="background:rgba(224, 27, 36, 0.2); color:var(--adw-red); font-size:10px;">BLOCKED</span>';
+        } else if (s.policy === "lan_only") {
+          policyBadge = '<span class="badge-pill" style="background:rgba(245, 194, 17, 0.2); color:var(--adw-yellow); font-size:10px;">LAN ONLY</span>';
+        }
+
+        let destHtml = `<span style="font-family:var(--font-mono); font-size:12px;">${s.remote}</span>`;
+        if (s.remote_hostname && s.remote_hostname !== s.remote_ip && s.remote_ip) {
+          destHtml = `
+            <div>
+              <div style="font-weight:600; color:var(--adw-blue); font-size:12px;">${escapeHtml(s.remote_hostname)}:${s.remote_port}</div>
+              <div style="font-size:10px; color:var(--adw-text-dim); font-family:var(--font-mono);">${s.remote_ip}</div>
+            </div>
+          `;
+        }
+
+        // Milestone 2 GeoIP + ASN Badge Rendering for WAN sockets
+        let geoBadge = "";
+        const countryCode = s.country_code || s.countryCode;
+        const countryName = s.country_name || s.countryName;
+        const flag = s.country_flag || s.countryFlag || s.flag || s.flag_emoji || "";
+        const asn = s.asn;
+        const asOrg = s.as_org || s.asOrg || "";
+        const isWan = (s.scope || "").toLowerCase() === "wan";
+
+        if (isWan && countryCode) {
+          const asnTag = asn ? `<span class="badge-pill" style="font-size:10px; padding:1px 6px; background:rgba(53,132,228,0.15); color:var(--adw-blue); font-family:var(--font-mono);" title="${escapeHtml(asOrg || 'ASN ' + asn)}">AS${escapeHtml(String(asn))}${asOrg ? ' ' + escapeHtml(asOrg) : ''}</span>` : "";
+          geoBadge = `
+            <div class="geo-badge-group" style="display:inline-flex; align-items:center; gap:5px; margin-top:3px;">
+              <span class="badge-pill" style="font-size:10px; padding:1px 6px; background:rgba(255,255,255,0.08);" title="${escapeHtml(countryName || countryCode)}">
+                ${flag} ${escapeHtml(countryCode)}
+              </span>
+              ${asnTag}
+            </div>
+          `;
+        }
+
+        const isTcp = (s.protocol || "").toUpperCase() === "TCP";
+        const hasRemoteIp = s.remote_ip && s.remote_ip !== "0.0.0.0" && s.remote_ip !== "127.0.0.1" && s.remote_ip !== "::1";
+        const severBtn = isTcp
+          ? `<button class="btn btn-destructive" style="padding:2px 7px; font-size:11px;" onclick="severSocketAction('${escapeHtml(s.remote_ip || '')}', ${s.remote_port || 0}, '${escapeHtml(s.local_ip || '')}', ${s.local_port || 0}, ${s.pid || 0})" title="Sever connection via SetTcpEntry">Sever</button>`
+          : "";
+        const blockIpBtn = hasRemoteIp
+          ? `<button class="btn" style="padding:2px 7px; font-size:11px;" onclick="blockIpAction('${escapeHtml(s.remote_ip)}')" title="Block IP via Windows Firewall">Block IP</button>`
+          : "";
+
+        const actionButtons = (severBtn || blockIpBtn)
+          ? `<div style="display:inline-flex; gap:4px; justify-content:flex-end;">${severBtn}${blockIpBtn}</div>`
+          : `<span style="color:var(--adw-text-dim);">-</span>`;
+
+        html += `
+          <tr>
+            <td>
+              <div style="font-weight:600; font-size:13px;">${escapeHtml(s.process_name || "System")}</div>
+              <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                <span class="badge-pill" style="font-size:9px; font-weight:700; padding:1px 6px;">${s.protocol.toUpperCase()}</span>
+                <span style="color:var(--adw-text-dim); font-size:11px; font-family:var(--font-mono);">PID ${s.pid || "-"}</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  ${destHtml}
+                  ${scopeBadge}
+                </div>
+                ${geoBadge}
+              </div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:12px; color:var(--adw-text-secondary);">${s.local}</div>
+              <div style="margin-top:2px;"><span class="badge-pill" style="font-size:10px;">${s.state}</span></div>
+            </td>
+            <td>${policyBadge}</td>
+            <td style="text-align:right;">${actionButtons}</td>
+          </tr>
+        `;
+      }
+      tbody.innerHTML = html;
+    }
+
+    function filterNetstatTable() {
+      const q = (document.getElementById("connFilter") ? document.getElementById("connFilter").value : "").toLowerCase().trim();
+      if (!q) {
+        renderNetstatRows(allSocketsCache);
+        return;
+      }
+      const filtered = allSocketsCache.filter(s => {
+        return (s.process_name && s.process_name.toLowerCase().includes(q)) ||
+               (s.remote && s.remote.toLowerCase().includes(q)) ||
+               (s.remote_hostname && s.remote_hostname.toLowerCase().includes(q)) ||
+               (s.country_code && s.country_code.toLowerCase().includes(q)) ||
+               (s.country_name && s.country_name.toLowerCase().includes(q)) ||
+               (s.as_org && s.as_org.toLowerCase().includes(q)) ||
+               (s.asn && String(s.asn).includes(q)) ||
+               (s.local && s.local.toLowerCase().includes(q)) ||
+               (s.pid && String(s.pid).includes(q)) ||
+               (s.state && s.state.toLowerCase().includes(q));
+      });
+      renderNetstatRows(filtered);
+    }
+
+    async function fetchNetstat() {
+      const tbody = document.getElementById("netstatTbody");
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--adw-text-dim);">Loading sockets...</td></tr>';
+      try {
+        const res = await fetch("/api/netstat");
+        const data = await res.json();
+        allSocketsCache = data.sockets || [];
+        filterNetstatTable();
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--adw-red);">Error loading socket table</td></tr>';
+      }
+    }
+
+    async function pollQuota() {
+      try {
+        const res = await fetch("/api/plan");
+        const plan = await res.json();
+        if (plan.configured && plan.limit_bytes) {
+          const pct = Math.min(100, plan.percentage || 0);
+          document.getElementById("quotaFill").style.width = pct + "%";
+          document.getElementById("quotaPctText").textContent = pct.toFixed(0) + "%";
+
+          const usedGb = (plan.used_bytes / (1024**3)).toFixed(2);
+          const limitGb = (plan.limit_bytes / (1024**3)).toFixed(2);
+          document.getElementById("quotaSubtitle").textContent = `${usedGb} GB used of ${limitGb} GB (${plan.period})`;
+        } else {
+          document.getElementById("quotaFill").style.width = "0%";
+          document.getElementById("quotaPctText").textContent = "Off";
+          document.getElementById("quotaSubtitle").textContent = "No data quota set";
+        }
+
+        // Fetch vnStat-style budget & burn-rate forecast
+        const forecastRes = await fetch("/api/plan/forecast");
+        if (forecastRes.ok) {
+          const f = await forecastRes.json();
+          const detailsRow = document.getElementById("forecastDetailsRow");
+          if (f.configured && detailsRow) {
+            detailsRow.style.display = "grid";
+            const badge = document.getElementById("forecastBurnBadge");
+            if (badge) {
+              if (f.burn_status === "healthy") {
+                badge.textContent = "Safe Pace";
+                badge.style.background = "rgba(51, 209, 122, 0.15)";
+                badge.style.color = "var(--adw-green)";
+              } else if (f.burn_status === "warning") {
+                badge.textContent = "Elevated Pace";
+                badge.style.background = "rgba(245, 194, 17, 0.2)";
+                badge.style.color = "var(--adw-yellow)";
+              } else {
+                badge.textContent = f.burn_status === "exceeded" ? "Cap Reached" : "Will Exceed Quota";
+                badge.style.background = "rgba(224, 27, 36, 0.2)";
+                badge.style.color = "var(--adw-red)";
+              }
+            }
+
+            const dailyEl = document.getElementById("forecastDailyBudget");
+            if (dailyEl) dailyEl.textContent = f.recommended_daily_budget_bytes > 0 ? `${formatBytes(f.recommended_daily_budget_bytes)} / day` : "0 B / day";
+
+            const projEl = document.getElementById("forecastProjectedTotal");
+            if (projEl) projEl.textContent = `${formatBytes(f.projected_total_bytes)} (${f.projected_percentage}%)`;
+
+            const capEl = document.getElementById("forecastExhaustionDate");
+            if (capEl) capEl.textContent = f.estimated_exhaustion_date || "Within Limit";
+          } else if (detailsRow) {
+            detailsRow.style.display = "none";
+          }
+        }
+      } catch (e) {}
+    }
+
+
+    function configureQuota() {
+      const modal = document.getElementById("quotaModal");
+      if (modal) {
+        modal.style.display = "flex";
+        const input = document.getElementById("quotaGbInput");
+        if (input) input.focus();
+      }
+    }
+
+    function closeQuotaModal() {
+      const modal = document.getElementById("quotaModal");
+      if (modal) modal.style.display = "none";
+    }
+
+    async function saveQuotaLimit() {
+      const input = document.getElementById("quotaGbInput");
+      const dayInput = document.getElementById("quotaResetDay");
+      const gb = parseFloat(input ? input.value : "0");
+      const day = parseInt(dayInput ? dayInput.value : "1", 10) || 1;
+      if (!isNaN(gb) && gb > 0) {
+        const bytes = gb * 1024 * 1024 * 1024;
+        await fetch("/api/plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ period: "monthly", limit_bytes: bytes, reset_day: day, warning_pct: 80 })
+        });
+        closeQuotaModal();
+        pollQuota();
+      }
+    }
+
+    async function clearQuotaLimit() {
+      await fetch("/api/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period: "monthly", limit_bytes: 0, reset_day: 1, warning_pct: 80 })
+      });
+      closeQuotaModal();
+      pollQuota();
+    }
+
+    async function runPing() {
+      const target = document.getElementById("pingInput").value.trim() || "1.1.1.1";
+      const out = document.getElementById("pingOutputRow");
+      out.style.display = "flex";
+      out.textContent = `Pinging ${target}...`;
+      try {
+        const res = await fetch(`/api/diagnostics/ping?target=${encodeURIComponent(target)}`);
+        const data = await res.json();
+        if (data.success) {
+          out.textContent = `Host: ${data.target} — Latency: ${data.latency_ms} ms (Method: ${data.method || 'ICMP'})`;
+          out.style.color = "var(--adw-green)";
+        } else {
+          out.textContent = `Failed: ${data.error || 'Destination unreachable'}`;
+          out.style.color = "var(--adw-red)";
+        }
+      } catch (e) {
+        out.textContent = "Request error";
+        out.style.color = "var(--adw-red)";
+      }
+    }
+
+    async function runSpeedtest() {
+      const btn = document.getElementById("speedtestBtn");
+      const val = document.getElementById("speedtestVal");
+      btn.disabled = true;
+      btn.textContent = "Testing...";
+      val.textContent = "Measuring...";
+      try {
+        const res = await fetch("/api/diagnostics/speedtest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ size_mb: 5 })
+        });
+        const data = await res.json();
+        if (data.success) {
+          val.textContent = `${data.speed_mbps} Mbps (${data.speed_mbytes_sec} MB/s)`;
+        } else {
+          val.textContent = "Test error";
+        }
+      } catch (e) {
+        val.textContent = "Failed";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Start Test";
+      }
+    }
+
+    async function scanDevices() {
+      const tbody = document.getElementById("devicesTbody");
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--adw-text-dim);">Scanning local subnet...</td></tr>';
+      try {
+        const res = await fetch("/api/diagnostics/devices");
+        const data = await res.json();
+        if (!data.devices || data.devices.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--adw-text-dim);">No neighbor devices discovered.</td></tr>';
+          return;
+        }
+        let html = "";
+        for (const d of data.devices) {
+          html += `
+            <tr>
+              <td style="font-family:var(--font-mono); font-weight:600;">${d.ip}</td>
+              <td style="font-family:var(--font-mono); font-size:12px; color:var(--adw-text-secondary);">${d.mac}</td>
+              <td><span class="badge-pill">${escapeHtml(d.vendor)}</span></td>
+              <td style="font-family:var(--font-mono);">${d.interface || "-"}</td>
+              <td>${escapeHtml(d.hostname || "Unknown")}</td>
+            </tr>
+          `;
+        }
+        tbody.innerHTML = html;
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--adw-red);">Scan error</td></tr>';
+      }
+    }
+
+    async function scanWifi() {
+      const tbody = document.getElementById("wifiTbody");
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--adw-text-dim); padding:16px;">Scanning nearby Wi-Fi access points and spectrum...</td></tr>';
+      try {
+        const res = await fetch("/api/diagnostics/wifi");
+        const data = await res.json();
+        if (!data.adapter_available) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--adw-text-dim); padding:16px;">${escapeHtml(data.message || "No Wi-Fi adapter detected.")}</td></tr>`;
+          return;
+        }
+        if (!data.networks || data.networks.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--adw-text-dim); padding:16px;">${escapeHtml(data.message || "No wireless networks found in range.")}</td></tr>`;
+          return;
+        }
+        let html = "";
+        for (const n of data.networks) {
+          const sig = Math.max(0, Math.min(100, n.signal_pct ?? 0));
+          const dbm = n.signal_dbm ?? Math.floor((sig / 2) - 100);
+          const barColor = sig > 65 ? "var(--adw-green)" : (sig > 35 ? "var(--adw-blue)" : "var(--adw-orange)");
+
+          let bandPill = `<span class="badge-pill">${escapeHtml(n.band || "2.4 GHz")}</span>`;
+          if (n.band && n.band.includes("6")) {
+            bandPill = `<span class="badge-pill" style="background:rgba(245,194,17,0.15); color:var(--adw-yellow); font-weight:600;">6 GHz Wi-Fi 6</span>`;
+          } else if (n.band && n.band.includes("5")) {
+            bandPill = `<span class="badge-pill" style="background:rgba(51,209,122,0.15); color:var(--adw-green);">5 GHz</span>`;
+          } else if (n.band && n.band.includes("2.4")) {
+            bandPill = `<span class="badge-pill" style="background:rgba(53,132,228,0.15); color:var(--adw-blue);">2.4 GHz</span>`;
+          }
+
+          const freqStr = n.frequency_mhz ? `<span style="font-size:11px; color:var(--adw-text-dim); margin-left:4px;">${n.frequency_mhz} MHz</span>` : "";
+
+          html += `
+            <tr>
+              <td style="font-weight:600; color:var(--adw-text-primary);">${escapeHtml(n.ssid || "<Hidden Network>")}</td>
+              <td style="font-family:var(--font-mono); font-size:12px; color:var(--adw-text-secondary);">${escapeHtml(n.bssid || "00:00:00:00:00:00")}</td>
+              <td style="font-family:var(--font-mono); font-size:12px; font-weight:600;">${n.channel || "-"}</td>
+              <td><div style="display:inline-flex; align-items:center;">${bandPill}${freqStr}</div></td>
+              <td>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div class="adw-progress-track" style="width:80px;">
+                    <div class="adw-progress-fill" style="width:${sig}%; background:${barColor};"></div>
+                  </div>
+                  <span style="font-family:var(--font-mono); font-size:11px; white-space:nowrap;">${sig}% (${dbm} dBm)</span>
+                </div>
+              </td>
+              <td><span class="badge-pill">${escapeHtml(n.security || "Open")}</span></td>
+            </tr>
+          `;
+        }
+        tbody.innerHTML = html;
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--adw-red); padding:16px;">Wi-Fi scan failed: unable to query wireless subsystem</td></tr>';
+      }
+    }
+
+    async function fetchHistoryData() {
+      try {
+        // 1. Fetch summary totals
+        const sumRes = await fetch("/api/stats/summary");
+        if (sumRes.ok) {
+          const s = await sumRes.json();
+          document.getElementById("histTodayVal").textContent = formatBytes(s.today.total);
+          document.getElementById("histTodaySubtitle").textContent = `▼ ${formatBytes(s.today.rx)} received, ▲ ${formatBytes(s.today.tx)} sent`;
+          document.getElementById("histYestVal").textContent = formatBytes(s.yesterday.total);
+          document.getElementById("histWeekVal").textContent = formatBytes(s.last_7_days.total);
+          document.getElementById("histMonthVal").textContent = formatBytes(s.last_30_days.total);
+        }
+
+        // 2. Fetch daily table
+        const dailyRes = await fetch("/api/stats/daily?days=30");
+        if (dailyRes.ok) {
+          const d = await dailyRes.json();
+          const tbody = document.getElementById("dailyHistoryTbody");
+          if (!d.daily_usage || d.daily_usage.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--adw-text-dim);">No historical records yet (collecting...)</td></tr>';
+          } else {
+            let html = "";
+            for (const row of d.daily_usage.slice().reverse()) {
+              html += `
+                <tr>
+                  <td style="font-family:var(--font-mono); font-weight:600;">${row.day}</td>
+                  <td style="color:var(--adw-blue); font-family:var(--font-mono);">▼ ${formatBytes(row.total_rx)}</td>
+                  <td style="color:var(--adw-orange); font-family:var(--font-mono);">▲ ${formatBytes(row.total_tx)}</td>
+                  <td style="font-family:var(--font-mono); font-weight:700;">${formatBytes(row.total_bytes)}</td>
+                </tr>
+              `;
+            }
+            tbody.innerHTML = html;
+          }
+        }
+
+        // 3. Fetch cumulative top apps
+        const appsRes = await fetch("/api/stats/top-apps?period=86400");
+        if (appsRes.ok) {
+          const a = await appsRes.json();
+          const tbody = document.getElementById("topAppsHistoryTbody");
+          if (!a.top_apps || a.top_apps.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--adw-text-dim);">No cumulative application records</td></tr>';
+          } else {
+            let html = "";
+            for (const app of a.top_apps) {
+              html += `
+                <tr>
+                  <td style="font-weight:600;">${escapeHtml(app.process_name)}</td>
+                  <td style="color:var(--adw-blue); font-family:var(--font-mono);">▼ ${formatBytes(app.rx_bytes)}</td>
+                  <td style="color:var(--adw-orange); font-family:var(--font-mono);">▲ ${formatBytes(app.tx_bytes)}</td>
+                  <td style="font-family:var(--font-mono); font-weight:700;">${formatBytes(app.total_bytes)}</td>
+                </tr>
+              `;
+            }
+            tbody.innerHTML = html;
+          }
+        }
+      } catch (e) {}
+    }
+
+    function formatSpeed(bytesPerSec) {
+      if (!bytesPerSec || bytesPerSec < 1024) return (bytesPerSec || 0).toFixed(0) + " B/s";
+      if (bytesPerSec < 1024 * 1024) return (bytesPerSec / 1024).toFixed(1) + " KB/s";
+      if (bytesPerSec < 1024 * 1024 * 1024) return (bytesPerSec / (1024 * 1024)).toFixed(2) + " MB/s";
+      return (bytesPerSec / (1024 * 1024 * 1024)).toFixed(2) + " GB/s";
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes < 1024) return (bytes || 0).toFixed(0) + " B";
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+      if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+      return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    // --- SENTINEL MODULE (Adopted from NetWatch-Sentinel) ---
+    async function fetchSentinelData() {
+      await Promise.all([
+        fetchThreats(),
+        fetchQosPolicies(),
+        fetchVpnStatus(),
+        fetchTorStatus()
+      ]);
+    }
+
+    async function fetchThreats() {
+      const tbody = document.getElementById("sentinelThreatsTbody");
+      try {
+        const res = await fetch("/api/security/scan");
+        const data = await res.json();
+        const procs = data.processes || [];
+        if (procs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--adw-text-dim);">No active processes found</td></tr>';
+          return;
+        }
+
+        // Sort by risk descending
+        procs.sort((a, b) => ((b.threat?.level || 0) - (a.threat?.level || 0)));
+
+        let html = "";
+        for (const p of procs) {
+          const t = p.threat || { level: 0, flags: [], publisher: "Unknown", status_message: "OK" };
+          let badge = '<span class="badge-pill" style="background:var(--adw-green-dim); color:var(--adw-green); font-size:11px;">Safe</span>';
+          if (t.level === 3) badge = '<span class="badge-pill" style="background:var(--adw-red-dim); color:var(--adw-red); font-weight:700; font-size:11px;">HIGH RISK</span>';
+          else if (t.level === 2) badge = '<span class="badge-pill" style="background:var(--adw-yellow-dim); color:var(--adw-yellow); font-size:11px;">Suspicious</span>';
+          else if (t.level === 1) badge = '<span class="badge-pill" style="background:var(--adw-orange-dim); color:var(--adw-orange); font-size:11px;">Unsigned</span>';
+
+          const flagsStr = (t.flags && t.flags.length > 0)
+            ? t.flags.map(f => `<div style="font-size:11px; color:var(--adw-orange); margin-bottom:2px;">• ${escapeHtml(f)}</div>`).join("")
+            : '<span style="color:var(--adw-text-dim); font-size:11px;">Clean - No anomalies</span>';
+
+          const rateStr = p.transfer_rate_kbps > 0
+            ? (p.transfer_rate_kbps >= 1024 ? (p.transfer_rate_kbps / 1024).toFixed(1) + " MB/s" : p.transfer_rate_kbps.toFixed(1) + " KB/s")
+            : "-";
+
+          const killThreatBtn = (p.pid && p.pid > 4)
+            ? `<button class="btn btn-destructive" style="padding:3px 8px; font-size:11px;" onclick="killProcessAction(${p.pid}, '${escapeHtml(p.name)}')">Terminate</button>`
+            : "";
+          const blockThreatBtn = p.name
+            ? `<button class="btn" style="padding:3px 8px; font-size:11px;" onclick="blockProcessAction('${escapeHtml(p.name)}')">Block</button>`
+            : "";
+          const actionsThreat = (killThreatBtn || blockThreatBtn)
+            ? `<div style="display:inline-flex; gap:4px; justify-content:flex-end;">${killThreatBtn}${blockThreatBtn}</div>`
+            : `<span style="color:var(--adw-text-dim);">-</span>`;
+
+          html += `
+            <tr>
+              <td style="font-weight:600; color:var(--adw-text-primary);">${escapeHtml(p.name)}</td>
+              <td style="font-family:var(--font-mono); color:var(--adw-text-secondary);">${p.pid || "-"}</td>
+              <td>${badge}</td>
+              <td style="font-size:12px;">
+                <div style="font-weight:600; color:var(--adw-text-secondary);">${escapeHtml(t.publisher)}</div>
+                <div style="font-size:11px; color:var(--adw-text-dim);">${escapeHtml(t.status_message || "")}</div>
+              </td>
+              <td>${flagsStr}</td>
+              <td style="font-family:var(--font-mono); font-weight:600; color:var(--adw-blue);">${rateStr}</td>
+              <td style="text-align:right;">${actionsThreat}</td>
+            </tr>
+          `;
+        }
+        tbody.innerHTML = html;
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--adw-red);">Error fetching threat scan</td></tr>';
+      }
+    }
+
+    async function fetchQosPolicies() {
+      const tbody = document.getElementById("qosPoliciesTbody");
+      const badge = document.getElementById("qosAdminBadge");
+      try {
+        const res = await fetch("/api/qos/policies");
+        const data = await res.json();
+        if (badge) {
+          badge.textContent = data.is_admin ? "Administrator (Active)" : "Standard User (Read-Only)";
+          badge.style.background = data.is_admin ? "var(--adw-green-dim)" : "var(--adw-orange-dim)";
+          badge.style.color = data.is_admin ? "var(--adw-green)" : "var(--adw-orange)";
+        }
+
+        const policies = data.policies || [];
+        if (policies.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--adw-text-dim);">No active QoS priority rules. Use the form above to prioritize your games or streaming apps.</td></tr>';
+          return;
+        }
+
+        let html = "";
+        for (const pol of policies) {
+          html += `
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:12px; color:var(--adw-text-dim);">${escapeHtml(pol.rule_name)}</td>
+              <td style="font-weight:700; color:var(--adw-text-primary);">${escapeHtml(pol.application_name)}</td>
+              <td><span class="badge-pill badge-active">${escapeHtml(pol.dscp_display)}</span></td>
+              <td style="font-family:var(--font-mono);">${pol.throttle_bytes_per_sec > 0 ? formatSpeed(pol.throttle_bytes_per_sec) : "Unlimited"}</td>
+              <td>
+                <button class="btn" style="padding:2px 8px; font-size:11px; color:var(--adw-red);" onclick="removeQosPolicy('${escapeHtml(pol.application_name)}')">Remove</button>
+              </td>
+            </tr>
+          `;
+        }
+        tbody.innerHTML = html;
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--adw-red);">Error loading QoS policies</td></tr>';
+      }
+    }
+
+    async function applyQosPolicy() {
+      const input = document.getElementById("qosProcInput");
+      const select = document.getElementById("qosDscpSelect");
+      const proc = (input.value || "").trim();
+      if (!proc) {
+        alert("Please enter an executable name (e.g. cs2.exe).");
+        return;
+      }
+
+      const dscp = parseInt(select.value, 10) || 46;
+      try {
+        const res = await fetch("/api/qos/apply", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ process_name: proc, dscp: dscp })
+        });
+        const data = await res.json();
+        alert(data.message || (data.success ? "QoS policy applied successfully." : "Failed to apply QoS policy."));
+        input.value = "";
+        fetchQosPolicies();
+      } catch (e) {
+        alert("Error applying QoS policy: " + e.message);
+      }
+    }
+
+    async function removeQosPolicy(procName) {
+      if (!confirm("Remove QoS policy for " + procName + "?")) return;
+      try {
+        const res = await fetch("/api/qos/remove", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ process_name: procName })
+        });
+        const data = await res.json();
+        fetchQosPolicies();
+      } catch (e) {
+        alert("Error removing QoS policy: " + e.message);
+      }
+    }
+
+    async function fetchVpnStatus() {
+      const badge = document.getElementById("vpnStateBadge");
+      const btn = document.getElementById("vpnConnectBtn");
+      try {
+        const res = await fetch("/api/vpn/status");
+        const data = await res.json();
+        if (badge) {
+          badge.textContent = data.state;
+          if (data.state === "Connected") {
+            badge.style.background = "var(--adw-green-dim)";
+            badge.style.color = "var(--adw-green)";
+            if (btn) btn.textContent = "Disconnect VPN";
+          } else if (data.state === "Connecting") {
+            badge.style.background = "var(--adw-yellow-dim)";
+            badge.style.color = "var(--adw-yellow)";
+            if (btn) btn.textContent = "Connecting...";
+          } else {
+            badge.style.background = "var(--adw-card-bg-elevated)";
+            badge.style.color = "var(--adw-text-dim)";
+            if (btn) btn.textContent = "Connect VPN";
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function toggleVpnConnect() {
+      const btn = document.getElementById("vpnConnectBtn");
+      const select = document.getElementById("vpnRelaySelect");
+      const isConnected = btn && btn.textContent.includes("Disconnect");
+
+      if (isConnected) {
+        btn.textContent = "Disconnecting...";
+        const res = await fetch("/api/vpn/disconnect", { method: "POST" });
+        await fetchVpnStatus();
+      } else {
+        const host = select ? select.value : "public-vpn-58.opengw.net";
+        btn.textContent = "Connecting...";
+        const res = await fetch("/api/vpn/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ host: host, protocol: "SSTP" })
+        });
+        const data = await res.json();
+        alert(data.message);
+        await fetchVpnStatus();
+      }
+    }
+
+    async function fetchTorStatus() {
+      const probeBadge = document.getElementById("torProbeBadge");
+      const proxyBadge = document.getElementById("torProxyStateBadge");
+      const btn = document.getElementById("torToggleBtn");
+      try {
+        const res = await fetch("/api/tor/status");
+        const data = await res.json();
+
+        if (probeBadge) {
+          probeBadge.textContent = data.is_tor_listening ? `Listening (Port ${data.active_port})` : "Not Detected (Port 9050)";
+          probeBadge.style.background = data.is_tor_listening ? "var(--adw-green-dim)" : "var(--adw-card-bg-elevated)";
+          probeBadge.style.color = data.is_tor_listening ? "var(--adw-green)" : "var(--adw-text-dim)";
+        }
+
+        if (proxyBadge) {
+          proxyBadge.textContent = data.is_system_proxy_enabled ? "Tor SOCKS Enabled (System-Wide)" : "Direct Connection (Disabled)";
+          proxyBadge.style.background = data.is_system_proxy_enabled ? "var(--adw-purple)" : "var(--adw-card-bg-elevated)";
+          proxyBadge.style.color = data.is_system_proxy_enabled ? "#fff" : "var(--adw-text-dim)";
+        }
+
+        if (btn) {
+          btn.textContent = data.is_system_proxy_enabled ? "Disable Tor System Proxy" : "Route Windows Traffic Through Tor";
+        }
+      } catch (e) {}
+    }
+
+    async function toggleTorProxy() {
+      const btn = document.getElementById("torToggleBtn");
+      const isEnabled = btn && btn.textContent.includes("Disable");
+
+      try {
+        const res = await fetch("/api/tor/toggle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: !isEnabled, port: 9050 })
+        });
+        const data = await res.json();
+        alert(data.message);
+        await fetchTorStatus();
+      } catch (e) {
+        alert("Error toggling Tor proxy: " + e.message);
+      }
+    }
+
+    // --- ACTIVE DEFENSE & THREAT REMEDIATION (Milestone 1) ---
+    function showElevationNotice(actionName, details) {
+      const modal = document.getElementById("elevationModal");
+      const desc = document.getElementById("elevationActionDesc");
+      const errBox = document.getElementById("elevationErrorDetails");
+      if (desc) desc.textContent = `Action '${actionName}' requires Administrator privileges.`;
+      if (errBox) errBox.textContent = details || "Windows Security reported Access Denied (Win32 Error 5). Standard user processes cannot terminate other processes, sever sockets, or modify firewall rules.";
+      if (modal) modal.style.display = "flex";
+    }
+
+    function closeElevationModal() {
+      const modal = document.getElementById("elevationModal");
+      if (modal) modal.style.display = "none";
+    }
+
+    async function killProcessAction(pid, name) {
+      if (!pid || pid <= 4) {
+        alert("Cannot terminate system kernel process.");
+        return;
+      }
+      if (!confirm(`Are you sure you want to terminate process '${name}' (PID: ${pid})?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/defense/kill-process", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pid: parseInt(pid, 10), exit_code: 1 })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showNotificationToast(`Terminated process '${name}' (PID: ${pid}) successfully.`);
+          if (typeof fetchThreats === "function") fetchThreats();
+          if (typeof pollData === "function") pollData();
+        } else if (data.elevation_required) {
+          showElevationNotice(`Terminate Process (${name} - PID ${pid})`, data.error);
+        } else {
+          alert(`Failed to terminate process: ${data.error || "Unknown error"}`);
+        }
+      } catch (e) {
+        alert("Request error while terminating process: " + e.message);
+      }
+    }
+
+    async function severSocketAction(remoteIp, remotePort, localIp, localPort, pid) {
+      if (!remoteIp && !pid) {
+        alert("Target endpoint or PID required to sever socket.");
+        return;
+      }
+      const label = remoteIp ? `${remoteIp}:${remotePort}` : `PID ${pid}`;
+      if (!confirm(`Sever TCP connection to ${label}?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/defense/sever-connection", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            remote_ip: remoteIp || null,
+            remote_port: remotePort ? parseInt(remotePort, 10) : null,
+            local_ip: localIp || null,
+            local_port: localPort ? parseInt(localPort, 10) : null,
+            pid: pid ? parseInt(pid, 10) : null
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const count = data.severed_count;
+          showNotificationToast(`Severed ${count} active connection(s) to ${label}.`);
+          if (typeof fetchNetstat === "function") fetchNetstat();
+        } else if (data.elevation_required) {
+          showElevationNotice(`Sever TCP Connection (${label})`, data.error);
+        } else {
+          alert(`Failed to sever connection: ${data.error || "Unknown error"}`);
+        }
+      } catch (e) {
+        alert("Request error while severing connection: " + e.message);
+      }
+    }
+
+    async function blockIpAction(ip) {
+      if (!ip || ip === "0.0.0.0" || ip === "127.0.0.1") {
+        alert("Cannot block local loopback or unspecified IP.");
+        return;
+      }
+      if (!confirm(`Create Windows Defender Firewall rule to BLOCK all traffic to/from ${ip}?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/defense/block-ip", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip: ip, reason: "Sentinel Active Defense" })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showNotificationToast(`Firewall rule '${data.rule_name}' created. Blocked ${ip}.`);
+          if (typeof fetchNetstat === "function") fetchNetstat();
+          if (typeof fetchFirewallStatus === "function") fetchFirewallStatus();
+        } else if (data.elevation_required) {
+          showElevationNotice(`Block IP (${ip})`, data.error);
+        } else {
+          alert(`Failed to block IP: ${data.error || "Unknown error"}`);
+        }
+      } catch (e) {
+        alert("Request error while blocking IP: " + e.message);
+      }
+    }
+
+    async function blockProcessAction(procName) {
+      if (!procName) return;
+      if (!confirm(`Block network access for process '${procName}' via Windows Firewall?`)) {
+        return;
+      }
+      try {
+        const res = await fetch("/api/firewall/block", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ process_name: procName })
+        });
+        const data = await res.json();
+        showNotificationToast(`Process '${procName}' set to Block policy.`);
+        if (typeof fetchThreats === "function") fetchThreats();
+        if (typeof fetchFirewallStatus === "function") fetchFirewallStatus();
+      } catch (e) {
+        alert("Error updating firewall policy: " + e.message);
+      }
+    }
+
+    function showNotificationToast(msg) {
+      let toast = document.getElementById("adwToastBanner");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "adwToastBanner";
+        toast.style.position = "fixed";
+        toast.style.bottom = "24px";
+        toast.style.right = "24px";
+        toast.style.background = "var(--adw-headerbar-bg)";
+        toast.style.border = "1px solid var(--adw-card-border)";
+        toast.style.borderRadius = "10px";
+        toast.style.padding = "10px 16px";
+        toast.style.color = "var(--adw-text-primary)";
+        toast.style.fontSize = "13px";
+        toast.style.fontWeight = "500";
+        toast.style.boxShadow = "0 8px 24px rgba(0,0,0,0.5)";
+        toast.style.zIndex = "9999";
+        toast.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.opacity = "1";
+      toast.style.transform = "translateY(0)";
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(10px)";
+      }, 3500);
+    }
+
+    async function loadDesktopSettings() {
+      try {
+        const res = await fetch("/api/system/startup");
+        if (res.ok) {
+          const data = await res.json();
+          const startupEl = document.getElementById("toggleStartup");
+          if (startupEl && data.enabled !== undefined) startupEl.checked = !!data.enabled;
+          const descEl = document.getElementById("startupStatusDesc");
+          if (descEl && data.path) descEl.title = "Executable: " + data.path;
+        }
+      } catch (err) {
+        console.warn("Could not load startup setting:", err);
+      }
+
+      try {
+        const res = await fetch("/api/system/notifications");
+        if (res.ok) {
+          const data = await res.json();
+          const toastEl = document.getElementById("toggleToasts");
+          if (toastEl && data.enabled !== undefined) toastEl.checked = !!data.enabled;
+        }
+      } catch (err) {
+        console.warn("Could not load notifications setting:", err);
+      }
+    }
+
+    async function toggleStartupSetting(enable) {
+      try {
+        const res = await fetch("/api/system/startup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enable: !!enable })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const startupEl = document.getElementById("toggleStartup");
+          if (startupEl && data.enabled !== undefined) startupEl.checked = data.enabled;
+          showNotificationToast(data.enabled ? "NetFlow configured to start on Windows login." : "NetFlow startup entry removed.");
+        }
+      } catch (err) {
+        console.error("Failed to toggle startup setting:", err);
+      }
+    }
+
+    async function toggleToastSetting(enable) {
+      try {
+        const res = await fetch("/api/system/notifications", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: !!enable })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const toastEl = document.getElementById("toggleToasts");
+          if (toastEl && data.enabled !== undefined) toastEl.checked = data.enabled;
+          showNotificationToast(data.enabled ? "Desktop toast notifications enabled." : "Desktop toast notifications silenced.");
+        }
+      } catch (err) {
+        console.error("Failed to toggle notifications setting:", err);
+      }
+    }
+
+    if (window.location.search.includes("native=1")) {
+      document.body.classList.add("is-native");
+    }
+
+    resizeCanvas();
+    initHistoryGraph();
+    fetchIncognitoStatus();
+    pollQuota();
+    loadDesktopSettings();
+    pollData().then(() => {
+      checkHash();
+    });
+
+    setInterval(pollData, 1000);
+    setInterval(pollQuota, 5000);
+  </script>
+
+  <!-- Elevation Error Notice Modal -->
+  <div id="elevationModal" class="adw-modal-backdrop" style="display: none;">
+    <div class="adw-modal-card" style="max-width: 480px;">
+      <div class="adw-modal-header">
+        <div class="adw-modal-title" style="display: flex; align-items: center; gap: 8px; color: var(--adw-red);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Administrator Privileges Required</span>
+        </div>
+        <button class="adw-modal-close" onclick="closeElevationModal()">&times;</button>
+      </div>
+      <div class="adw-modal-body">
+        <p id="elevationActionDesc" style="font-size: 13px; color: var(--adw-text-primary); margin-bottom: 12px; font-weight: 600;">
+          This active defense action requires Windows Administrator rights.
+        </p>
+        <div style="background: rgba(224, 27, 36, 0.12); border: 1px solid rgba(224, 27, 36, 0.3); border-radius: 8px; padding: 12px; font-size: 12px; color: var(--adw-text-secondary); line-height: 1.5;">
+          <div style="font-weight: 600; color: var(--adw-red); margin-bottom: 4px;">Privilege Escalation Notice:</div>
+          <div id="elevationErrorDetails" style="font-family: var(--font-mono); font-size: 11px; margin-bottom: 8px; color: var(--adw-text-primary);">
+            Administrator privileges required.
+          </div>
+          NetFlow is running in <strong>Standard User mode</strong>. Operations such as terminating processes (<code>TerminateProcess</code>), severing TCP connections (<code>SetTcpEntry</code>), or modifying Windows Defender Firewall rules (<code>netsh advfirewall</code>) require elevation.
+          <div style="margin-top: 8px; color: var(--adw-text-primary);">
+            <strong>Remedy:</strong> Close NetFlow and relaunch by right-clicking <em>NetFlow.App.exe</em> and selecting <strong>"Run as administrator"</strong>.
+          </div>
+        </div>
+      </div>
+      <div class="adw-modal-footer" style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-suggested" onclick="closeElevationModal()">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Adwaita Quota Configuration Modal -->
+  <div id="quotaModal" class="adw-modal-backdrop" style="display: none;">
+    <div class="adw-modal-card">
+      <div class="adw-modal-header">
+        <div class="adw-modal-title">Set Monthly Data Quota</div>
+        <button class="adw-modal-close" onclick="closeQuotaModal()">&times;</button>
+      </div>
+      <div class="adw-modal-body">
+        <p style="color: var(--adw-text-secondary); font-size: 13px; margin-bottom: 14px;">
+          Configure your billing cycle data limit. NetFlow will calculate remaining allowance and send desktop alerts as you approach the cap.
+        </p>
+        <div class="adw-entry-row">
+          <label for="quotaGbInput" style="font-weight: 600; font-size: 13px; color: var(--adw-text-secondary);">Limit (Gigabytes)</label>
+          <input type="number" id="quotaGbInput" class="input-adw" style="width: 100%; font-size: 14px; padding: 8px 12px;" placeholder="50" min="1" step="1" value="50">
+        </div>
+        <div class="adw-entry-row" style="margin-top: 12px;">
+          <label for="quotaResetDay" style="font-weight: 600; font-size: 13px; color: var(--adw-text-secondary);">Billing Reset Day of Month (1 - 31)</label>
+          <input type="number" id="quotaResetDay" class="input-adw" style="width: 100%; font-size: 14px; padding: 8px 12px;" placeholder="1" min="1" max="31" value="1">
+        </div>
+      </div>
+      <div class="adw-modal-footer">
+        <button class="btn" style="color: var(--adw-red);" onclick="clearQuotaLimit()">Disable Quota</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" onclick="closeQuotaModal()">Cancel</button>
+          <button class="btn btn-suggested" onclick="saveQuotaLimit()">Apply Quota</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
