@@ -36,6 +36,18 @@ public class WindowsTorManager : ITorManager
                 return (false, "Failed to access Windows Internet Settings registry key.");
             }
 
+            // Backup prior proxy settings if not already backed up
+            object? existingServer = key.GetValue("ProxyServer");
+            object? existingEnable = key.GetValue("ProxyEnable");
+            if (key.GetValue("NetFlow_PrevProxyServer") == null && existingServer != null)
+            {
+                key.SetValue("NetFlow_PrevProxyServer", existingServer.ToString() ?? "", RegistryValueKind.String);
+            }
+            if (key.GetValue("NetFlow_PrevProxyEnable") == null && existingEnable != null)
+            {
+                key.SetValue("NetFlow_PrevProxyEnable", existingEnable, RegistryValueKind.DWord);
+            }
+
             key.SetValue("ProxyEnable", 1, RegistryValueKind.DWord);
             key.SetValue("ProxyServer", proxyServer, RegistryValueKind.String);
 
@@ -61,7 +73,24 @@ public class WindowsTorManager : ITorManager
                 return (false, "Failed to access Windows Internet Settings registry key.");
             }
 
-            key.SetValue("ProxyEnable", 0, RegistryValueKind.DWord);
+            // Restore previous settings if available
+            object? prevServer = key.GetValue("NetFlow_PrevProxyServer");
+            object? prevEnable = key.GetValue("NetFlow_PrevProxyEnable");
+
+            if (prevServer != null)
+            {
+                key.SetValue("ProxyServer", prevServer.ToString() ?? "", RegistryValueKind.String);
+                try { key.DeleteValue("NetFlow_PrevProxyServer"); } catch { }
+            }
+            if (prevEnable != null && int.TryParse(prevEnable.ToString(), out int pEnable))
+            {
+                key.SetValue("ProxyEnable", pEnable, RegistryValueKind.DWord);
+                try { key.DeleteValue("NetFlow_PrevProxyEnable"); } catch { }
+            }
+            else
+            {
+                key.SetValue("ProxyEnable", 0, RegistryValueKind.DWord);
+            }
 
             // Flush WinINet
             Kernel32.InternetSetOption(IntPtr.Zero, Kernel32.INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);

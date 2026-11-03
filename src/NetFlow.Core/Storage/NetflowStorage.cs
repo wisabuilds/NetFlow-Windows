@@ -33,6 +33,7 @@ public class NetflowStorage : IDisposable
             throw new InvalidOperationException($"Failed to open SQLite database at '{_dbPath}': {err} (code {rc})");
         }
 
+        ExecuteNonQuery("PRAGMA busy_timeout = 5000;");
         ExecuteNonQuery("PRAGMA journal_mode=WAL;");
         ExecuteNonQuery("PRAGMA synchronous=NORMAL;");
         ExecuteNonQuery("PRAGMA auto_vacuum=INCREMENTAL;");
@@ -155,14 +156,20 @@ public class NetflowStorage : IDisposable
             int rc = WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero);
             if (rc == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(stmt, 1, timestamp);
-                WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(iface), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                WinSqliteInterop.BindInt64(stmt, 3, rxBytes);
-                WinSqliteInterop.BindInt64(stmt, 4, txBytes);
-                WinSqliteInterop.BindDouble(stmt, 5, rxSpeed);
-                WinSqliteInterop.BindDouble(stmt, 6, txSpeed);
-                WinSqliteInterop.Step(stmt);
-                WinSqliteInterop.Finalize(stmt);
+                try
+                {
+                    WinSqliteInterop.BindInt64(stmt, 1, timestamp);
+                    WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(iface), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    WinSqliteInterop.BindInt64(stmt, 3, rxBytes);
+                    WinSqliteInterop.BindInt64(stmt, 4, txBytes);
+                    WinSqliteInterop.BindDouble(stmt, 5, rxSpeed);
+                    WinSqliteInterop.BindDouble(stmt, 6, txSpeed);
+                    WinSqliteInterop.Step(stmt);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
         }
     }
@@ -175,14 +182,20 @@ public class NetflowStorage : IDisposable
             int rc = WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero);
             if (rc == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(stmt, 1, timestamp);
-                WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                WinSqliteInterop.BindInt(stmt, 3, pid);
-                WinSqliteInterop.BindInt64(stmt, 4, rxBytes);
-                WinSqliteInterop.BindInt64(stmt, 5, txBytes);
-                WinSqliteInterop.BindInt(stmt, 6, activeConnections);
-                WinSqliteInterop.Step(stmt);
-                WinSqliteInterop.Finalize(stmt);
+                try
+                {
+                    WinSqliteInterop.BindInt64(stmt, 1, timestamp);
+                    WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    WinSqliteInterop.BindInt(stmt, 3, pid);
+                    WinSqliteInterop.BindInt64(stmt, 4, rxBytes);
+                    WinSqliteInterop.BindInt64(stmt, 5, txBytes);
+                    WinSqliteInterop.BindInt(stmt, 6, activeConnections);
+                    WinSqliteInterop.Step(stmt);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
         }
     }
@@ -200,22 +213,28 @@ public class NetflowStorage : IDisposable
             int rc = WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero);
             if (rc == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(stmt, 1, cutoff);
-                if (!string.IsNullOrEmpty(iface))
+                try
                 {
-                    WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(iface), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                }
-
-                while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
-                {
-                    list.Add(new Dictionary<string, object>
+                    WinSqliteInterop.BindInt64(stmt, 1, cutoff);
+                    if (!string.IsNullOrEmpty(iface))
                     {
-                        ["timestamp"] = WinSqliteInterop.ColumnInt64(stmt, 0),
-                        ["rx_speed"] = WinSqliteInterop.ColumnDouble(stmt, 1),
-                        ["tx_speed"] = WinSqliteInterop.ColumnDouble(stmt, 2)
-                    });
+                        WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(iface), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    }
+
+                    while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                    {
+                        list.Add(new Dictionary<string, object>
+                        {
+                            ["timestamp"] = WinSqliteInterop.ColumnInt64(stmt, 0),
+                            ["rx_speed"] = WinSqliteInterop.ColumnDouble(stmt, 1),
+                            ["tx_speed"] = WinSqliteInterop.ColumnDouble(stmt, 2)
+                        });
+                    }
                 }
-                WinSqliteInterop.Finalize(stmt);
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
             return list;
         }
@@ -260,22 +279,28 @@ public class NetflowStorage : IDisposable
             int rc = WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero);
             if (rc == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(stmt, 1, cutoff);
-                WinSqliteInterop.BindInt64(stmt, 2, cutoff);
-                while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    string day = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
-                    long rx = WinSqliteInterop.ColumnInt64(stmt, 1);
-                    long tx = WinSqliteInterop.ColumnInt64(stmt, 2);
-                    list.Add(new Dictionary<string, object>
+                    WinSqliteInterop.BindInt64(stmt, 1, cutoff);
+                    WinSqliteInterop.BindInt64(stmt, 2, cutoff);
+                    while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
                     {
-                        ["date"] = day,
-                        ["rx_bytes"] = rx,
-                        ["tx_bytes"] = tx,
-                        ["total_bytes"] = rx + tx
-                    });
+                        string day = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
+                        long rx = WinSqliteInterop.ColumnInt64(stmt, 1);
+                        long tx = WinSqliteInterop.ColumnInt64(stmt, 2);
+                        list.Add(new Dictionary<string, object>
+                        {
+                            ["date"] = day,
+                            ["rx_bytes"] = rx,
+                            ["tx_bytes"] = tx,
+                            ["total_bytes"] = rx + tx
+                        });
+                    }
                 }
-                WinSqliteInterop.Finalize(stmt);
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
             return list;
         }
@@ -305,13 +330,19 @@ public class NetflowStorage : IDisposable
             """;
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sqlToday), -1, out IntPtr s1, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(s1, 1, dayStart);
-                if (WinSqliteInterop.Step(s1) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    todayRx = WinSqliteInterop.ColumnInt64(s1, 0);
-                    todayTx = WinSqliteInterop.ColumnInt64(s1, 1);
+                    WinSqliteInterop.BindInt64(s1, 1, dayStart);
+                    if (WinSqliteInterop.Step(s1) == WinSqliteInterop.SQLITE_ROW)
+                    {
+                        todayRx = WinSqliteInterop.ColumnInt64(s1, 0);
+                        todayTx = WinSqliteInterop.ColumnInt64(s1, 1);
+                    }
                 }
-                WinSqliteInterop.Finalize(s1);
+                finally
+                {
+                    WinSqliteInterop.Finalize(s1);
+                }
             }
 
             long allRx = 0, allTx = 0;
@@ -342,12 +373,18 @@ public class NetflowStorage : IDisposable
             """;
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sqlAll), -1, out IntPtr s2, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                if (WinSqliteInterop.Step(s2) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    allRx = WinSqliteInterop.ColumnInt64(s2, 0);
-                    allTx = WinSqliteInterop.ColumnInt64(s2, 1);
+                    if (WinSqliteInterop.Step(s2) == WinSqliteInterop.SQLITE_ROW)
+                    {
+                        allRx = WinSqliteInterop.ColumnInt64(s2, 0);
+                        allTx = WinSqliteInterop.ColumnInt64(s2, 1);
+                    }
                 }
-                WinSqliteInterop.Finalize(s2);
+                finally
+                {
+                    WinSqliteInterop.Finalize(s2);
+                }
             }
 
             return new Dictionary<string, object>
@@ -383,24 +420,30 @@ public class NetflowStorage : IDisposable
             var list = new List<Dictionary<string, object>>();
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(stmt, 1, cutoff);
-                WinSqliteInterop.BindInt(stmt, 2, limit);
-                while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    string name = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
-                    long rx = WinSqliteInterop.ColumnInt64(stmt, 1);
-                    long tx = WinSqliteInterop.ColumnInt64(stmt, 2);
-                    int maxConn = WinSqliteInterop.ColumnInt(stmt, 3);
-                    list.Add(new Dictionary<string, object>
+                    WinSqliteInterop.BindInt64(stmt, 1, cutoff);
+                    WinSqliteInterop.BindInt(stmt, 2, limit);
+                    while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
                     {
-                        ["process_name"] = name,
-                        ["rx_bytes"] = rx,
-                        ["tx_bytes"] = tx,
-                        ["total_bytes"] = rx + tx,
-                        ["max_connections"] = maxConn,
-                    });
+                        string name = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
+                        long rx = WinSqliteInterop.ColumnInt64(stmt, 1);
+                        long tx = WinSqliteInterop.ColumnInt64(stmt, 2);
+                        int maxConn = WinSqliteInterop.ColumnInt(stmt, 3);
+                        list.Add(new Dictionary<string, object>
+                        {
+                            ["process_name"] = name,
+                            ["rx_bytes"] = rx,
+                            ["tx_bytes"] = tx,
+                            ["total_bytes"] = rx + tx,
+                            ["max_connections"] = maxConn,
+                        });
+                    }
                 }
-                WinSqliteInterop.Finalize(stmt);
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
             return list;
         }
@@ -418,17 +461,23 @@ public class NetflowStorage : IDisposable
             string sql = "SELECT period, limit_bytes, reset_day, warning_pct FROM data_plan WHERE id = 1;";
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                if (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    period = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
-                    if (WinSqliteInterop.ColumnType(stmt, 1) != 5) // SQLITE_NULL
+                    if (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
                     {
-                        limitBytes = WinSqliteInterop.ColumnInt64(stmt, 1);
+                        period = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
+                        if (WinSqliteInterop.ColumnType(stmt, 1) != 5) // SQLITE_NULL
+                        {
+                            limitBytes = WinSqliteInterop.ColumnInt64(stmt, 1);
+                        }
+                        resetDay = WinSqliteInterop.ColumnInt(stmt, 2);
+                        warningPct = WinSqliteInterop.ColumnInt(stmt, 3);
                     }
-                    resetDay = WinSqliteInterop.ColumnInt(stmt, 2);
-                    warningPct = WinSqliteInterop.ColumnInt(stmt, 3);
                 }
-                WinSqliteInterop.Finalize(stmt);
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
 
             var now = DateTime.UtcNow;
@@ -488,13 +537,19 @@ public class NetflowStorage : IDisposable
             """;
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sqlUsage), -1, out IntPtr sUsage, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(sUsage, 1, startUnix);
-                WinSqliteInterop.BindInt64(sUsage, 2, startUnix);
-                if (WinSqliteInterop.Step(sUsage) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    usageBytes = WinSqliteInterop.ColumnInt64(sUsage, 0);
+                    WinSqliteInterop.BindInt64(sUsage, 1, startUnix);
+                    WinSqliteInterop.BindInt64(sUsage, 2, startUnix);
+                    if (WinSqliteInterop.Step(sUsage) == WinSqliteInterop.SQLITE_ROW)
+                    {
+                        usageBytes = WinSqliteInterop.ColumnInt64(sUsage, 0);
+                    }
                 }
-                WinSqliteInterop.Finalize(sUsage);
+                finally
+                {
+                    WinSqliteInterop.Finalize(sUsage);
+                }
             }
 
             double percentUsed = limitBytes.HasValue && limitBytes.Value > 0
@@ -614,15 +669,21 @@ public class NetflowStorage : IDisposable
             """;
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(period), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                if (limitBytes.HasValue)
-                    WinSqliteInterop.BindInt64(stmt, 2, limitBytes.Value);
-                else
-                    WinSqliteInterop.BindNull(stmt, 2);
-                WinSqliteInterop.BindInt(stmt, 3, resetDay);
-                WinSqliteInterop.BindInt(stmt, 4, warningPct);
-                WinSqliteInterop.Step(stmt);
-                WinSqliteInterop.Finalize(stmt);
+                try
+                {
+                    WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(period), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    if (limitBytes.HasValue)
+                        WinSqliteInterop.BindInt64(stmt, 2, limitBytes.Value);
+                    else
+                        WinSqliteInterop.BindNull(stmt, 2);
+                    WinSqliteInterop.BindInt(stmt, 3, resetDay);
+                    WinSqliteInterop.BindInt(stmt, 4, warningPct);
+                    WinSqliteInterop.Step(stmt);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
         }
     }
@@ -635,13 +696,19 @@ public class NetflowStorage : IDisposable
             string sql = "SELECT process_name, policy FROM firewall_rules;";
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    string name = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
-                    string pol = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 1));
-                    dict[name] = pol;
+                    while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                    {
+                        string name = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
+                        string pol = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 1));
+                        dict[name] = pol;
+                    }
                 }
-                WinSqliteInterop.Finalize(stmt);
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
             return dict;
         }
@@ -658,12 +725,18 @@ public class NetflowStorage : IDisposable
             """;
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                WinSqliteInterop.BindInt(stmt, 2, blocked ? 1 : 0);
-                WinSqliteInterop.BindText(stmt, 3, WinSqliteInterop.Utf8Bytes(policy), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                WinSqliteInterop.BindDouble(stmt, 4, now);
-                WinSqliteInterop.Step(stmt);
-                WinSqliteInterop.Finalize(stmt);
+                try
+                {
+                    WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    WinSqliteInterop.BindInt(stmt, 2, blocked ? 1 : 0);
+                    WinSqliteInterop.BindText(stmt, 3, WinSqliteInterop.Utf8Bytes(policy), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    WinSqliteInterop.BindDouble(stmt, 4, now);
+                    WinSqliteInterop.Step(stmt);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
         }
     }
@@ -684,13 +757,19 @@ public class NetflowStorage : IDisposable
             """;
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindDouble(stmt, 1, now);
-                WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                if (pid.HasValue) WinSqliteInterop.BindInt(stmt, 3, pid.Value); else WinSqliteInterop.BindNull(stmt, 3);
-                WinSqliteInterop.BindText(stmt, 4, WinSqliteInterop.Utf8Bytes(remoteEndpoint), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                WinSqliteInterop.BindText(stmt, 5, WinSqliteInterop.Utf8Bytes(action), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                WinSqliteInterop.Step(stmt);
-                WinSqliteInterop.Finalize(stmt);
+                try
+                {
+                    WinSqliteInterop.BindDouble(stmt, 1, now);
+                    WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    if (pid.HasValue) WinSqliteInterop.BindInt(stmt, 3, pid.Value); else WinSqliteInterop.BindNull(stmt, 3);
+                    WinSqliteInterop.BindText(stmt, 4, WinSqliteInterop.Utf8Bytes(remoteEndpoint), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    WinSqliteInterop.BindText(stmt, 5, WinSqliteInterop.Utf8Bytes(action), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    WinSqliteInterop.Step(stmt);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
         }
     }
@@ -703,18 +782,24 @@ public class NetflowStorage : IDisposable
             string sql = "SELECT id, timestamp, process_name, pid, remote_endpoint, action FROM firewall_events ORDER BY id DESC LIMIT ?;";
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt(stmt, 1, limit);
-                while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    long id = WinSqliteInterop.ColumnInt64(stmt, 0);
-                    double ts = WinSqliteInterop.ColumnDouble(stmt, 1);
-                    string name = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 2));
-                    int? pid = WinSqliteInterop.ColumnType(stmt, 3) != 5 ? WinSqliteInterop.ColumnInt(stmt, 3) : null;
-                    string endpoint = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 4));
-                    string action = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 5));
-                    list.Add(new FirewallEvent(id, ts, name, pid, endpoint, action));
+                    WinSqliteInterop.BindInt(stmt, 1, limit);
+                    while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                    {
+                        long id = WinSqliteInterop.ColumnInt64(stmt, 0);
+                        double ts = WinSqliteInterop.ColumnDouble(stmt, 1);
+                        string name = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 2));
+                        int? pid = WinSqliteInterop.ColumnType(stmt, 3) != 5 ? WinSqliteInterop.ColumnInt(stmt, 3) : null;
+                        string endpoint = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 4));
+                        string action = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 5));
+                        list.Add(new FirewallEvent(id, ts, name, pid, endpoint, action));
+                    }
                 }
-                WinSqliteInterop.Finalize(stmt);
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
             return list;
         }
@@ -729,12 +814,18 @@ public class NetflowStorage : IDisposable
             bool isNew = true;
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(checkSql), -1, out IntPtr s1, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindText(s1, 1, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                if (WinSqliteInterop.Step(s1) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    isNew = false;
+                    WinSqliteInterop.BindText(s1, 1, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    if (WinSqliteInterop.Step(s1) == WinSqliteInterop.SQLITE_ROW)
+                    {
+                        isNew = false;
+                    }
                 }
-                WinSqliteInterop.Finalize(s1);
+                finally
+                {
+                    WinSqliteInterop.Finalize(s1);
+                }
             }
 
             if (isNew)
@@ -742,12 +833,18 @@ public class NetflowStorage : IDisposable
                 string insertSql = "INSERT INTO seen_applications (process_name, first_seen_timestamp, last_seen_timestamp, cmdline) VALUES (?, ?, ?, ?);";
                 if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(insertSql), -1, out IntPtr s2, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
                 {
-                    WinSqliteInterop.BindText(s2, 1, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                    WinSqliteInterop.BindDouble(s2, 2, now);
-                    WinSqliteInterop.BindDouble(s2, 3, now);
-                    WinSqliteInterop.BindText(s2, 4, WinSqliteInterop.Utf8Bytes(cmdline ?? ""), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                    WinSqliteInterop.Step(s2);
-                    WinSqliteInterop.Finalize(s2);
+                    try
+                    {
+                        WinSqliteInterop.BindText(s2, 1, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                        WinSqliteInterop.BindDouble(s2, 2, now);
+                        WinSqliteInterop.BindDouble(s2, 3, now);
+                        WinSqliteInterop.BindText(s2, 4, WinSqliteInterop.Utf8Bytes(cmdline ?? ""), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                        WinSqliteInterop.Step(s2);
+                    }
+                    finally
+                    {
+                        WinSqliteInterop.Finalize(s2);
+                    }
                 }
             }
             else
@@ -755,10 +852,16 @@ public class NetflowStorage : IDisposable
                 string updateSql = "UPDATE seen_applications SET last_seen_timestamp = ? WHERE process_name = ?;";
                 if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(updateSql), -1, out IntPtr s3, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
                 {
-                    WinSqliteInterop.BindDouble(s3, 1, now);
-                    WinSqliteInterop.BindText(s3, 2, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                    WinSqliteInterop.Step(s3);
-                    WinSqliteInterop.Finalize(s3);
+                    try
+                    {
+                        WinSqliteInterop.BindDouble(s3, 1, now);
+                        WinSqliteInterop.BindText(s3, 2, WinSqliteInterop.Utf8Bytes(processName), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                        WinSqliteInterop.Step(s3);
+                    }
+                    finally
+                    {
+                        WinSqliteInterop.Finalize(s3);
+                    }
                 }
             }
 
@@ -809,14 +912,18 @@ public class NetflowStorage : IDisposable
             int rc = WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero);
             if (rc == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(key), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                if (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    string val = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
-                    WinSqliteInterop.Finalize(stmt);
-                    return val;
+                    WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(key), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    if (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                    {
+                        return WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0));
+                    }
                 }
-                WinSqliteInterop.Finalize(stmt);
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
             return defaultValue;
         }
@@ -830,10 +937,16 @@ public class NetflowStorage : IDisposable
             int rc = WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero);
             if (rc == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(key), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(value), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                WinSqliteInterop.Step(stmt);
-                WinSqliteInterop.Finalize(stmt);
+                try
+                {
+                    WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(key), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(value), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    WinSqliteInterop.Step(stmt);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
         }
     }
@@ -882,9 +995,15 @@ public class NetflowStorage : IDisposable
             int ifaceRollups = 0;
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(rollupIfaceSql), -1, out IntPtr sRollupIface, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(sRollupIface, 1, currentHour);
-                WinSqliteInterop.Step(sRollupIface);
-                WinSqliteInterop.Finalize(sRollupIface);
+                try
+                {
+                    WinSqliteInterop.BindInt64(sRollupIface, 1, currentHour);
+                    WinSqliteInterop.Step(sRollupIface);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(sRollupIface);
+                }
                 ifaceRollups = WinSqliteInterop.Changes(_db);
             }
 
@@ -906,9 +1025,15 @@ public class NetflowStorage : IDisposable
             int procRollups = 0;
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(rollupProcSql), -1, out IntPtr sRollupProc, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(sRollupProc, 1, todayStart);
-                WinSqliteInterop.Step(sRollupProc);
-                WinSqliteInterop.Finalize(sRollupProc);
+                try
+                {
+                    WinSqliteInterop.BindInt64(sRollupProc, 1, todayStart);
+                    WinSqliteInterop.Step(sRollupProc);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(sRollupProc);
+                }
                 procRollups = WinSqliteInterop.Changes(_db);
             }
 
@@ -918,9 +1043,15 @@ public class NetflowStorage : IDisposable
             string purgeIfaceSql = "DELETE FROM interface_history WHERE timestamp < ?;";
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(purgeIfaceSql), -1, out IntPtr sPurgeIface, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(sPurgeIface, 1, rawRetentionCutoff);
-                WinSqliteInterop.Step(sPurgeIface);
-                WinSqliteInterop.Finalize(sPurgeIface);
+                try
+                {
+                    WinSqliteInterop.BindInt64(sPurgeIface, 1, rawRetentionCutoff);
+                    WinSqliteInterop.Step(sPurgeIface);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(sPurgeIface);
+                }
                 purgedRawIface = WinSqliteInterop.Changes(_db);
             }
 
@@ -928,9 +1059,15 @@ public class NetflowStorage : IDisposable
             string purgeProcSql = "DELETE FROM process_history WHERE timestamp < ?;";
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(purgeProcSql), -1, out IntPtr sPurgeProc, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(sPurgeProc, 1, rawRetentionCutoff);
-                WinSqliteInterop.Step(sPurgeProc);
-                WinSqliteInterop.Finalize(sPurgeProc);
+                try
+                {
+                    WinSqliteInterop.BindInt64(sPurgeProc, 1, rawRetentionCutoff);
+                    WinSqliteInterop.Step(sPurgeProc);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(sPurgeProc);
+                }
                 purgedRawProc = WinSqliteInterop.Changes(_db);
             }
 
@@ -940,9 +1077,15 @@ public class NetflowStorage : IDisposable
             string purgeHourlySql = "DELETE FROM interface_history_hourly WHERE timestamp < ?;";
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(purgeHourlySql), -1, out IntPtr sPurgeHourly, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(sPurgeHourly, 1, hourlyRetentionCutoff);
-                WinSqliteInterop.Step(sPurgeHourly);
-                WinSqliteInterop.Finalize(sPurgeHourly);
+                try
+                {
+                    WinSqliteInterop.BindInt64(sPurgeHourly, 1, hourlyRetentionCutoff);
+                    WinSqliteInterop.Step(sPurgeHourly);
+                }
+                finally
+                {
+                    WinSqliteInterop.Finalize(sPurgeHourly);
+                }
                 purgedHourly = WinSqliteInterop.Changes(_db);
             }
 
@@ -965,25 +1108,31 @@ public class NetflowStorage : IDisposable
             var list = new List<Dictionary<string, object>>();
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindInt64(stmt, 1, cutoff);
-                if (!string.IsNullOrEmpty(iface))
+                try
                 {
-                    WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(iface), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                }
-
-                while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
-                {
-                    list.Add(new Dictionary<string, object>
+                    WinSqliteInterop.BindInt64(stmt, 1, cutoff);
+                    if (!string.IsNullOrEmpty(iface))
                     {
-                        ["timestamp"] = WinSqliteInterop.ColumnInt64(stmt, 0),
-                        ["interface"] = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 1)),
-                        ["rx_bytes"] = WinSqliteInterop.ColumnInt64(stmt, 2),
-                        ["tx_bytes"] = WinSqliteInterop.ColumnInt64(stmt, 3),
-                        ["rx_speed_avg"] = WinSqliteInterop.ColumnDouble(stmt, 4),
-                        ["tx_speed_avg"] = WinSqliteInterop.ColumnDouble(stmt, 5)
-                    });
+                        WinSqliteInterop.BindText(stmt, 2, WinSqliteInterop.Utf8Bytes(iface), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    }
+
+                    while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                    {
+                        list.Add(new Dictionary<string, object>
+                        {
+                            ["timestamp"] = WinSqliteInterop.ColumnInt64(stmt, 0),
+                            ["interface"] = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 1)),
+                            ["rx_bytes"] = WinSqliteInterop.ColumnInt64(stmt, 2),
+                            ["tx_bytes"] = WinSqliteInterop.ColumnInt64(stmt, 3),
+                            ["rx_speed_avg"] = WinSqliteInterop.ColumnDouble(stmt, 4),
+                            ["tx_speed_avg"] = WinSqliteInterop.ColumnDouble(stmt, 5)
+                        });
+                    }
                 }
-                WinSqliteInterop.Finalize(stmt);
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
             return list;
         }
@@ -999,19 +1148,25 @@ public class NetflowStorage : IDisposable
             var list = new List<Dictionary<string, object>>();
             if (WinSqliteInterop.Prepare(_db, WinSqliteInterop.Utf8Bytes(sql), -1, out IntPtr stmt, IntPtr.Zero) == WinSqliteInterop.SQLITE_OK)
             {
-                WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(cutoffDay), -1, WinSqliteInterop.SQLITE_TRANSIENT);
-                while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
+                try
                 {
-                    list.Add(new Dictionary<string, object>
+                    WinSqliteInterop.BindText(stmt, 1, WinSqliteInterop.Utf8Bytes(cutoffDay), -1, WinSqliteInterop.SQLITE_TRANSIENT);
+                    while (WinSqliteInterop.Step(stmt) == WinSqliteInterop.SQLITE_ROW)
                     {
-                        ["day"] = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0)),
-                        ["process_name"] = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 1)),
-                        ["total_rx"] = WinSqliteInterop.ColumnInt64(stmt, 2),
-                        ["total_tx"] = WinSqliteInterop.ColumnInt64(stmt, 3),
-                        ["max_connections"] = WinSqliteInterop.ColumnInt(stmt, 4)
-                    });
+                        list.Add(new Dictionary<string, object>
+                        {
+                            ["day"] = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 0)),
+                            ["process_name"] = WinSqliteInterop.PtrToStringUtf8(WinSqliteInterop.ColumnText(stmt, 1)),
+                            ["total_rx"] = WinSqliteInterop.ColumnInt64(stmt, 2),
+                            ["total_tx"] = WinSqliteInterop.ColumnInt64(stmt, 3),
+                            ["max_connections"] = WinSqliteInterop.ColumnInt(stmt, 4)
+                        });
+                    }
                 }
-                WinSqliteInterop.Finalize(stmt);
+                finally
+                {
+                    WinSqliteInterop.Finalize(stmt);
+                }
             }
             return list;
         }

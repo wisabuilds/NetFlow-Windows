@@ -20,6 +20,7 @@ class TestAdvancedFeatures(unittest.TestCase):
         self.firewall = FirewallEngine(self.storage)
 
     def tearDown(self):
+        self.storage.close()
         shutil.rmtree(self.test_dir)
 
     def test_dns_resolver_ip_classification(self):

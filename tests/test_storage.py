@@ -17,6 +17,7 @@ class TestNetflowStorage(unittest.TestCase):
         self.storage = NetflowStorage(self.db_path)
 
     def tearDown(self):
+        self.storage.close()
         self.temp_dir.cleanup()
 
     def test_record_and_get_speeds(self):

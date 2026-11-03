@@ -40,6 +40,7 @@ class TestAPIServer(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.stop()
+        cls.storage.close()
         cls.temp_dir.cleanup()
 
     def _get(self, path: str):

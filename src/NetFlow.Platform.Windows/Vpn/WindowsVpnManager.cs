@@ -45,6 +45,8 @@ public class WindowsVpnManager : IVpnManager
         {
             _cachedRelays = GetCuratedSeedRelays();
         }
+
+        _lastFetchTime = DateTime.UtcNow;
     }
 
     public VpnStatusInfo GetStatus()

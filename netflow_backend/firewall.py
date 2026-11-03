@@ -188,8 +188,12 @@ class FirewallEngine:
         """Attempts to sever unauthorized network socket."""
         if s.remote_ip and s.remote_port:
             try:
+                cmd = ["ss", "-K"]
+                if s.local_ip and s.local_port:
+                    cmd.extend(["src", s.local_ip, "sport", str(s.local_port)])
+                cmd.extend(["dst", s.remote_ip, "dport", str(s.remote_port)])
                 subprocess.run(
-                    ["ss", "-K", "dst", s.remote_ip, "dport", str(s.remote_port)],
+                    cmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     timeout=0.5,

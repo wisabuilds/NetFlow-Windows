@@ -83,8 +83,37 @@ public class WindowsSecurityScanner : ISecurityScanner
         }
         catch
         {
-            string cleanPath = exePath.ToLowerInvariant();
-            if (cleanPath.Contains(@"\windows\system32\") || cleanPath.Contains(@"\windows\syswow64\"))
+            bool isSystemDir = false;
+            try
+            {
+                string fullPath = Path.GetFullPath(exePath);
+                string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+                if (string.IsNullOrEmpty(winDir))
+                {
+                    winDir = Environment.GetEnvironmentVariable("SystemRoot") ?? @"C:\Windows";
+                }
+                string sysDir = Environment.GetFolderPath(Environment.SpecialFolder.System);
+                if (string.IsNullOrEmpty(sysDir))
+                {
+                    sysDir = Path.Combine(winDir, "System32");
+                }
+                string sysWow64 = Path.Combine(winDir, "SysWOW64");
+
+                if (!string.IsNullOrEmpty(sysDir) && fullPath.StartsWith(sysDir + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                {
+                    isSystemDir = true;
+                }
+                else if (!string.IsNullOrEmpty(sysWow64) && fullPath.StartsWith(sysWow64 + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                {
+                    isSystemDir = true;
+                }
+            }
+            catch
+            {
+                isSystemDir = false;
+            }
+
+            if (isSystemDir)
             {
                 result = (true, true, "Microsoft Windows (Catalog Signed)", "Verified Windows OS System Component");
             }
@@ -145,11 +174,37 @@ public class WindowsSecurityScanner : ISecurityScanner
         {
             if (!string.IsNullOrEmpty(cleanPath) && (cleanPath.Contains('\\') || cleanPath.Contains('/')))
             {
-                if (!cleanPath.Contains(@"\windows\system32\") &&
-                    !cleanPath.Contains(@"\windows\syswow64\") &&
-                    !cleanPath.Contains(@"\windows\systemapps\") &&
-                    !cleanPath.Contains(@"\windows\") &&
-                    !cleanPath.Contains(@"\program files"))
+                bool isSystemLocation = false;
+                try
+                {
+                    string fullPath = Path.GetFullPath(path!);
+                    string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+                    if (string.IsNullOrEmpty(winDir))
+                    {
+                        winDir = Environment.GetEnvironmentVariable("SystemRoot") ?? @"C:\Windows";
+                    }
+                    string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                    string progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+
+                    if (!string.IsNullOrEmpty(winDir) && fullPath.StartsWith(winDir + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                    {
+                        isSystemLocation = true;
+                    }
+                    else if (!string.IsNullOrEmpty(progFiles) && fullPath.StartsWith(progFiles + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                    {
+                        isSystemLocation = true;
+                    }
+                    else if (!string.IsNullOrEmpty(progFilesX86) && fullPath.StartsWith(progFilesX86 + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                    {
+                        isSystemLocation = true;
+                    }
+                }
+                catch
+                {
+                    isSystemLocation = false;
+                }
+
+                if (!isSystemLocation)
                 {
                     assessment.Flags.Add($"Masquerading: Named '{name}' but executing from non-system location: {path}");
                     assessment.Level = RiskLevel.High;

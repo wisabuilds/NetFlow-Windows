@@ -6,6 +6,7 @@ Zero external dependencies.
 """
 
 from collections import OrderedDict
+import concurrent.futures
 import ipaddress
 import queue
 import socket
@@ -30,6 +31,9 @@ class DNSResolver:
         self._in_flight = set()
 
         self._stop_event = threading.Event()
+        self._executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=2, thread_name_prefix="NetFlowDNSExec"
+        )
         self._worker_thread = threading.Thread(
             target=self._resolve_worker, daemon=True, name="NetFlowDNSWorker"
         )
@@ -45,15 +49,11 @@ class DNSResolver:
             hostname = ip
             try:
                 # Fast reverse DNS lookup with per-call timeout
-                # Save and restore default to avoid poisoning other sockets
-                prev_timeout = socket.getdefaulttimeout()
-                try:
-                    socket.setdefaulttimeout(1.2)
-                    host_info = socket.getnameinfo((ip, 0), socket.NI_NAMEREQD)
-                    if host_info and host_info[0]:
-                        hostname = host_info[0]
-                finally:
-                    socket.setdefaulttimeout(prev_timeout)
+                # Uses ThreadPoolExecutor future timeout to avoid mutating global socket.setdefaulttimeout()
+                future = self._executor.submit(socket.getnameinfo, (ip, 0), socket.NI_NAMEREQD)
+                host_info = future.result(timeout=1.2)
+                if host_info and host_info[0]:
+                    hostname = host_info[0]
             except Exception:
                 # Fallback to the raw IP if reverse DNS fails or times out
                 hostname = ip
@@ -126,6 +126,10 @@ class DNSResolver:
 
     def stop(self) -> None:
         self._stop_event.set()
+        try:
+            self._executor.shutdown(wait=False, cancel_futures=True)
+        except Exception:
+            pass
 
 
 # Shared singleton instance

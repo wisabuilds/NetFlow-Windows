@@ -10,16 +10,26 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
-        string logPath = Path.Combine(
+        string netflowDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "NetFlow",
-            "crash.log");
+            "NetFlow");
+        string logPath = Path.Combine(netflowDir, "crash.log");
+
+        try
+        {
+            if (!Directory.Exists(netflowDir))
+            {
+                Directory.CreateDirectory(netflowDir);
+            }
+        }
+        catch { }
 
         AppDomain.CurrentDomain.UnhandledException += (s, ev) =>
         {
             try
             {
-                File.WriteAllText(logPath, ev.ExceptionObject.ToString());
+                string entry = $"[{DateTime.UtcNow:O}] [AppDomain Unhandled] {ev.ExceptionObject}\n\n";
+                File.AppendAllText(logPath, entry);
             }
             catch { }
         };
@@ -28,7 +38,8 @@ public partial class App : System.Windows.Application
         {
             try
             {
-                File.WriteAllText(logPath, ev.Exception.ToString());
+                string entry = $"[{DateTime.UtcNow:O}] [Dispatcher Unhandled] {ev.Exception}\n\n";
+                File.AppendAllText(logPath, entry);
             }
             catch { }
             ev.Handled = true;

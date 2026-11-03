@@ -57,6 +57,7 @@ public class GeoIpDatabase : IDisposable
             throw new InvalidOperationException($"Failed to open SQLite database at '{_dbPath}': {err} (code {rc})");
         }
 
+        ExecuteNonQuery("PRAGMA busy_timeout = 5000;");
         ExecuteNonQuery("PRAGMA journal_mode=WAL;");
         ExecuteNonQuery("PRAGMA synchronous=NORMAL;");
     }

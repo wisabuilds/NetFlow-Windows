@@ -29,7 +29,25 @@ class NetflowStorage:
 
     def _get_connection(self) -> sqlite3.Connection:
         """Returns the persistent connection. All callers must use self._lock."""
+        if self._conn is None:
+            self._conn = self._create_connection()
         return self._conn
+
+    def close(self) -> None:
+        """Closes the underlying SQLite database connection."""
+        with self._lock:
+            if self._conn is not None:
+                try:
+                    self._conn.close()
+                except Exception:
+                    pass
+                self._conn = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     def _init_db(self) -> None:
         with self._get_connection() as conn:

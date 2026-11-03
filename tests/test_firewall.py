@@ -22,6 +22,7 @@ class TestFirewall(unittest.TestCase):
         self.firewall = FirewallEngine(self.storage)
 
     def tearDown(self):
+        self.storage.close()
         self.temp_dir.cleanup()
 
     def test_block_and_unblock_persistence(self):
